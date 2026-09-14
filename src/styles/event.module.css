@@ -1,0 +1,1139 @@
+/* =========================================================
+   EVENT MANAGEMENT - MODERN ADMIN DESIGN
+========================================================= */
+
+.container {
+  width: 100%;
+  padding: 25px;
+}
+
+/* =========================================================
+   HERO
+========================================================= */
+
+.hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
+
+  background: linear-gradient(135deg, #5b1a1a, #7a2424, #111);
+
+  color: white;
+
+  padding: 45px;
+  border-radius: 35px;
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+
+  margin-bottom: 35px;
+}
+
+.hero h1 {
+  font-size: 38px;
+  font-weight: 900;
+}
+
+.hero p {
+  margin-top: 12px;
+
+  max-width: 650px;
+
+  color: rgba(255, 255, 255, 0.75);
+
+  line-height: 1.7;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: rgba(255, 255, 255, 0.15);
+
+  padding: 18px 25px;
+
+  border-radius: 50px;
+
+  font-weight: 800;
+
+  backdrop-filter: blur(10px);
+}
+
+/* =========================================================
+UPLOAD CARD
+========================================================= */
+
+.uploadCard {
+  background: white;
+
+  padding: 35px;
+
+  border-radius: 35px;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+
+  margin-bottom: 40px;
+}
+
+.uploadCard h2 {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  font-size: 26px;
+
+  color: #5b1a1a;
+
+  margin-bottom: 25px;
+}
+
+.formGrid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 25px;
+}
+
+.field,
+.fieldFull {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.fieldFull {
+  grid-column: 1/-1;
+}
+
+label {
+  font-weight: 800;
+
+  color: #555;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid #ddd;
+
+  padding: 15px;
+
+  border-radius: 16px;
+
+  font-size: 15px;
+
+  outline: none;
+
+  transition: 0.3s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #5b1a1a;
+
+  box-shadow: 0 0 0 3px rgba(91, 26, 26, 0.12);
+}
+
+textarea {
+  min-height: 130px;
+
+  resize: none;
+}
+
+.preview {
+  margin-top: 25px;
+}
+
+.preview img {
+  width: 250px;
+
+  height: 180px;
+
+  object-fit: cover;
+
+  border-radius: 25px;
+}
+
+.uploadBtn {
+  margin-top: 25px;
+
+  background: #5b1a1a;
+
+  color: white;
+
+  border: none;
+
+  padding: 15px 30px;
+
+  border-radius: 50px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  transition: 0.3s;
+}
+
+.uploadBtn:hover {
+  background: #7a2424;
+
+  transform: translateY(-3px);
+}
+
+.uploadBtn:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+/* =========================================================
+TOOLS
+========================================================= */
+
+.tools {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+
+  margin-bottom: 30px;
+
+  flex-wrap: wrap;
+}
+
+.search {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  background: white;
+
+  padding: 14px 20px;
+
+  border-radius: 50px;
+
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+
+  flex: 1;
+
+  max-width: 450px;
+}
+
+.search input {
+  border: none;
+
+  padding: 0;
+
+  width: 100%;
+}
+
+.categories {
+  display: flex;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+.categories button {
+  border: none;
+
+  padding: 10px 20px;
+
+  border-radius: 50px;
+
+  background: #eee;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.3s;
+}
+
+.categories button:hover,
+.active {
+  background: #5b1a1a !important;
+
+  color: white;
+}
+
+/* =========================================================
+EVENT GRID
+========================================================= */
+
+.grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 30px;
+}
+
+.card {
+  background: white;
+
+  border-radius: 35px;
+
+  overflow: hidden;
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+.imageBox {
+  height: 260px;
+
+  position: relative;
+
+  overflow: hidden;
+}
+
+.imageBox img {
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.55);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 15px;
+
+  opacity: 0;
+
+  transition: 0.3s;
+}
+
+.imageBox:hover .overlay {
+  opacity: 1;
+}
+
+.overlay button {
+  width: 45px;
+
+  height: 45px;
+
+  border: none;
+
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  background: white;
+
+  color: #5b1a1a;
+
+  font-size: 20px;
+}
+
+.content {
+  padding: 25px;
+}
+
+.content h3 {
+  font-size: 22px;
+
+  font-weight: 900;
+
+  color: #5b1a1a;
+}
+
+.content span {
+  display: inline-block;
+
+  margin-top: 10px;
+
+  background: #f6e7b0;
+
+  color: #5b1a1a;
+
+  padding: 7px 15px;
+
+  border-radius: 50px;
+
+  font-weight: 700;
+
+  font-size: 13px;
+}
+
+.content p {
+  margin-top: 15px;
+
+  line-height: 1.7;
+
+  color: #666;
+}
+
+.date {
+  margin-top: 15px;
+
+  display: flex;
+
+  gap: 8px;
+
+  align-items: center;
+
+  font-weight: 700;
+
+  color: #777;
+}
+
+/* =========================================================
+STATUS
+========================================================= */
+
+.status {
+  padding: 8px 15px;
+
+  border-radius: 50px;
+
+  font-size: 13px;
+
+  font-weight: 800;
+}
+
+.upcoming {
+  background: #fff3cd;
+
+  color: #856404;
+}
+
+.completed {
+  background: #d4edda;
+
+  color: #155724;
+}
+
+.cancelled {
+  background: #f8d7da;
+
+  color: #721c24;
+}
+
+/* =========================================================
+MODAL
+========================================================= */
+
+.modal {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.65);
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  z-index: 999;
+
+  padding: 20px;
+}
+
+.modalContent {
+  background: white;
+
+  max-width: 700px;
+
+  width: 100%;
+
+  border-radius: 35px;
+
+  overflow: hidden;
+}
+
+.modalContent img {
+  width: 100%;
+
+  height: 350px;
+
+  object-fit: cover;
+}
+
+.modalBody {
+  padding: 30px;
+}
+
+.close {
+  position: absolute;
+
+  top: 30px;
+
+  right: 30px;
+
+  background: white;
+
+  border: none;
+
+  border-radius: 50%;
+
+  width: 45px;
+
+  height: 45px;
+
+  cursor: pointer;
+
+  font-size: 22px;
+}
+
+/* =========================================================
+EMPTY
+========================================================= */
+
+.empty {
+  text-align: center;
+
+  padding: 80px;
+
+  background: white;
+
+  border-radius: 35px;
+
+  color: #777;
+}
+
+/* =========================================================
+RESPONSIVE
+========================================================= */
+
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .hero h1 {
+    font-size: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .hero {
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    padding: 30px;
+  }
+
+  .hero h1 {
+    font-size: 27px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tools {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .search {
+    max-width: none;
+  }
+
+  .uploadCard {
+    padding: 25px;
+  }
+
+  .imageBox {
+    height: 230px;
+  }
+
+  .modalContent img {
+    height: 230px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    border-radius: 25px;
+  }
+
+  .hero h1 {
+    font-size: 23px;
+  }
+
+  .badge {
+    width: 100%;
+
+    justify-content: center;
+  }
+
+  .categories button {
+    padding: 8px 14px;
+
+    font-size: 13px;
+  }
+}
+.container {
+  padding: 30px;
+}
+
+/* ==========================
+   HERO
+========================== */
+
+.hero {
+  background: linear-gradient(135deg, #7b1e1e, #c69214);
+
+  color: white;
+
+  padding: 35px;
+
+  border-radius: 25px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 30px;
+}
+
+.hero h1 {
+  font-size: 32px;
+
+  margin-bottom: 10px;
+}
+
+.hero p {
+  opacity: 0.9;
+
+  max-width: 600px;
+}
+
+.badge {
+  background: white;
+
+  color: #7b1e1e;
+
+  padding: 15px 25px;
+
+  border-radius: 50px;
+
+  display: flex;
+
+  gap: 10px;
+
+  align-items: center;
+
+  font-weight: 700;
+}
+
+/* ==========================
+ ALERTS
+========================== */
+
+.success,
+.error {
+  padding: 15px 20px;
+
+  border-radius: 15px;
+
+  margin-bottom: 20px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+.success {
+  background: #dcfce7;
+
+  color: #166534;
+}
+
+.error {
+  background: #fee2e2;
+
+  color: #991b1b;
+}
+
+/* ==========================
+ UPLOAD CARD
+========================== */
+
+.uploadCard {
+  background: white;
+
+  padding: 30px;
+
+  border-radius: 25px;
+
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+
+  margin-bottom: 35px;
+}
+
+.uploadCard h2 {
+  display: flex;
+
+  gap: 10px;
+
+  align-items: center;
+
+  margin-bottom: 25px;
+}
+
+.formGrid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 20px;
+}
+
+.field,
+.fieldFull {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+}
+
+.fieldFull {
+  grid-column: 1/-1;
+}
+
+.field label,
+.fieldFull label {
+  font-weight: 600;
+}
+
+.field input,
+.field select,
+.fieldFull textarea {
+  padding: 14px;
+
+  border-radius: 12px;
+
+  border: 1px solid #ddd;
+
+  font-size: 15px;
+}
+
+.fieldFull textarea {
+  min-height: 130px;
+
+  resize: none;
+}
+
+.preview img {
+  width: 250px;
+
+  height: 180px;
+
+  object-fit: cover;
+
+  border-radius: 15px;
+
+  margin-top: 20px;
+}
+
+.progressBox {
+  margin-top: 20px;
+}
+
+.progress {
+  height: 10px;
+
+  background: #eee;
+
+  border-radius: 20px;
+
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+
+  height: 100%;
+
+  background: #c69214;
+}
+
+.uploadBtn {
+  margin-top: 25px;
+
+  background: #7b1e1e;
+
+  color: white;
+
+  border: none;
+
+  padding: 15px 30px;
+
+  border-radius: 50px;
+
+  cursor: pointer;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  font-size: 16px;
+}
+
+.uploadBtn:disabled {
+  opacity: 0.6;
+}
+
+/* ==========================
+ SEARCH
+========================== */
+
+.tools {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 30px;
+
+  flex-wrap: wrap;
+}
+
+.search {
+  background: white;
+
+  padding: 12px 18px;
+
+  border-radius: 50px;
+
+  display: flex;
+
+  gap: 10px;
+
+  align-items: center;
+
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+}
+
+.search input {
+  border: none;
+
+  outline: none;
+}
+
+.categories {
+  display: flex;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+.categories button {
+  border: none;
+
+  padding: 10px 18px;
+
+  border-radius: 50px;
+
+  cursor: pointer;
+}
+
+.categories .active {
+  background: #7b1e1e;
+
+  color: white;
+}
+
+/* ==========================
+ EVENTS GRID
+========================== */
+
+.grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 25px;
+}
+
+.card {
+  background: white;
+
+  border-radius: 25px;
+
+  overflow: hidden;
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+.imageBox {
+  position: relative;
+
+  height: 240px;
+}
+
+.imageBox img {
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.45);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 15px;
+
+  opacity: 0;
+
+  transition: 0.3s;
+}
+
+.imageBox:hover .overlay {
+  opacity: 1;
+}
+
+.overlay button {
+  width: 45px;
+
+  height: 45px;
+
+  border-radius: 50%;
+
+  border: none;
+
+  cursor: pointer;
+}
+
+.content {
+  padding: 20px;
+}
+
+.titleRow {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 10px;
+}
+
+.titleRow span {
+  background: #f5e6b3;
+
+  padding: 5px 10px;
+
+  border-radius: 20px;
+
+  font-size: 12px;
+}
+
+.info {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  margin-top: 15px;
+}
+
+.info div {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.upcoming,
+.completed,
+.cancelled {
+  margin-top: 15px;
+
+  display: inline-block;
+
+  padding: 8px 15px;
+
+  border-radius: 30px;
+
+  font-size: 13px;
+}
+
+.upcoming {
+  background: #dcfce7;
+
+  color: #166534;
+}
+
+.completed {
+  background: #e0e7ff;
+}
+
+.cancelled {
+  background: #fee2e2;
+}
+
+/* ==========================
+ MODAL
+========================== */
+
+.modal {
+  position: fixed;
+
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.7);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  z-index: 999;
+
+  padding: 20px;
+}
+
+.modalContent {
+  background: white;
+
+  max-width: 800px;
+
+  width: 100%;
+
+  border-radius: 25px;
+
+  overflow: hidden;
+}
+
+.modalContent img {
+  width: 100%;
+
+  height: 350px;
+
+  object-fit: cover;
+}
+
+.modalBody {
+  padding: 25px;
+}
+
+.close {
+  position: absolute;
+
+  top: 30px;
+
+  right: 30px;
+
+  background: white;
+
+  border: none;
+
+  border-radius: 50%;
+
+  width: 45px;
+
+  height: 45px;
+
+  cursor: pointer;
+}
+
+/* ==========================
+ RESPONSIVE
+========================== */
+
+@media (max-width: 1000px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .container {
+    padding: 15px;
+  }
+
+  .hero {
+    flex-direction: column;
+
+    gap: 20px;
+
+    align-items: flex-start;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: 24px;
+  }
+}

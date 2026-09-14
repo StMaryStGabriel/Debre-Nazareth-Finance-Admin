@@ -1,0 +1,108 @@
+:root {
+  --brand-bg: #0f172a;
+  --brand-surface: #111827;
+  --brand-surface-soft: #1e293b;
+  --brand-accent: var(--primary);
+  --brand-accent-strong: var(--primary-strong);
+  --primary: #06b6d4;
+  --primary-strong: #0ea5e9;
+  --btn-start: var(--primary);
+  --btn-end: var(--primary-strong);
+  --gold: #d4af37;
+  --sidebar-top: #000000;
+  --sidebar-mid: #0b0b0c;
+  --brand-text: #f8fafc;
+  --brand-muted: #cbd5e1;
+  --brand-border: rgba(248, 250, 252, 0.12);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background: linear-gradient(
+    135deg,
+    var(--brand-bg),
+    #111827 55%,
+    var(--brand-surface-soft)
+  );
+  color: var(--brand-text);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Global primary button styling (applies to most buttons across admin) */
+button,
+.btn,
+input[type="button"],
+input[type="submit"],
+.selectBtn,
+.uploadBtn,
+.submit,
+.addBox button,
+.primaryBtn,
+.logout,
+.deleteBtn {
+  background: linear-gradient(135deg, var(--btn-start), var(--btn-end));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(6, 182, 212, 0.12);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+  cursor: pointer;
+}
+
+button:hover,
+.btn:hover,
+.selectBtn:hover,
+.uploadBtn:hover,
+.submit:hover,
+.addBox button:hover,
+.primaryBtn:hover,
+.logout:hover,
+.deleteBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(6, 182, 212, 0.18);
+  filter: brightness(1.02);
+}
+
+/* Ensure inputs that look like buttons keep accessible contrast when disabled */
+button:disabled,
+.submit:disabled,
+.uploadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.08);
+}
+
+/* Active / selected states use primary gradient */
+.active,
+.is-active,
+a.active,
+button:active,
+.btn:active {
+  background: linear-gradient(
+    135deg,
+    var(--btn-start),
+    var(--btn-end)
+  ) !important;
+  box-shadow: 0 10px 24px rgba(6, 182, 212, 0.28) !important;
+  color: white !important;
+}

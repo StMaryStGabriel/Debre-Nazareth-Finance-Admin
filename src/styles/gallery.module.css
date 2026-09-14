@@ -1,0 +1,453 @@
+.container {
+  padding: 30px;
+
+  background: #fff8e7;
+
+  min-height: 100vh;
+}
+
+/* HERO */
+
+.hero {
+  background: #5b1a1a;
+
+  color: white;
+
+  padding: 35px;
+
+  border-radius: 35px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+}
+
+.hero h1 {
+  font-size: 42px;
+
+  margin-bottom: 10px;
+
+  font-family: Cinzel, serif;
+}
+
+.hero p {
+  opacity: 0.9;
+}
+
+.badge {
+  background: #d4af37;
+
+  color: #5b1a1a;
+
+  padding: 15px 25px;
+
+  border-radius: 50px;
+
+  font-weight: bold;
+
+  display: flex;
+
+  gap: 10px;
+
+  align-items: center;
+}
+
+/* UPLOAD */
+
+.uploadCard {
+  margin-top: 35px;
+
+  background: white;
+
+  padding: 35px;
+
+  border-radius: 35px;
+
+  box-shadow: 0 20px 40px #0001;
+}
+
+.uploadCard h2 {
+  display: flex;
+
+  gap: 10px;
+
+  color: #5b1a1a;
+}
+
+.formGrid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 20px;
+
+  margin-top: 25px;
+}
+
+.formGrid input,
+.formGrid select,
+.formGrid textarea {
+  padding: 15px;
+
+  border-radius: 15px;
+
+  border: 1px solid #ddd;
+
+  font-size: 15px;
+}
+
+textarea {
+  height: 120px;
+
+  grid-column: span 2;
+}
+
+.uploadCard button {
+  margin-top: 20px;
+
+  background: #5b1a1a;
+
+  color: white;
+
+  padding: 15px 30px;
+
+  border-radius: 50px;
+
+  border: none;
+
+  font-weight: bold;
+
+  display: flex;
+
+  gap: 10px;
+
+  align-items: center;
+}
+
+.preview img {
+  width: 200px;
+
+  height: 150px;
+
+  object-fit: cover;
+
+  border-radius: 20px;
+
+  margin-top: 20px;
+}
+
+/* TOOLS */
+
+.tools {
+  margin: 40px 0;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  flex-wrap: wrap;
+}
+
+.search {
+  background: white;
+
+  padding: 15px 20px;
+
+  border-radius: 50px;
+
+  display: flex;
+
+  gap: 10px;
+
+  align-items: center;
+}
+
+.search input {
+  border: none;
+
+  outline: none;
+}
+
+.categories button {
+  padding: 10px 20px;
+
+  border-radius: 30px;
+
+  border: none;
+
+  margin: 5px;
+
+  cursor: pointer;
+}
+
+.active {
+  background: #5b1a1a;
+
+  color: white;
+}
+
+/* GRID */
+
+.grid {
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+
+  gap: 30px;
+}
+
+.card {
+  background: white;
+
+  border-radius: 30px;
+
+  overflow: hidden;
+
+  box-shadow: 0 15px 35px #0002;
+}
+
+.imageBox {
+  height: 260px;
+
+  position: relative;
+}
+
+.imageBox img {
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.overlay {
+  position: absolute;
+
+  inset: 0;
+
+  background: #0008;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  gap: 20px;
+
+  opacity: 0;
+
+  transition: 0.3s;
+}
+
+.imageBox:hover .overlay {
+  opacity: 1;
+}
+
+.overlay button {
+  width: 45px;
+
+  height: 45px;
+
+  border-radius: 50%;
+
+  border: none;
+
+  cursor: pointer;
+}
+
+.content {
+  padding: 25px;
+}
+
+.content h3 {
+  color: #5b1a1a;
+}
+
+.content span {
+  background: #d4af37;
+
+  padding: 6px 15px;
+
+  border-radius: 20px;
+
+  font-size: 13px;
+}
+
+.content p {
+  color: #555;
+
+  line-height: 1.6;
+}
+
+.modal {
+  position: fixed;
+
+  inset: 0;
+
+  background: #000c;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  z-index: 999;
+}
+
+.modal img {
+  max-width: 90%;
+
+  max-height: 90%;
+
+  border-radius: 30px;
+}
+
+.modal button {
+  position: absolute;
+
+  top: 30px;
+
+  right: 40px;
+
+  background: white;
+
+  border: none;
+
+  border-radius: 50%;
+
+  padding: 15px;
+}
+
+@media (max-width: 700px) {
+  .hero {
+    flex-direction: column;
+
+    text-align: center;
+  }
+
+  .hero h1 {
+    font-size: 30px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  textarea {
+    grid-column: auto;
+  }
+
+  .container {
+    padding: 15px;
+  }
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label,
+.fieldFull label {
+  font-weight: 700;
+
+  color: #5b1a1a;
+
+  font-size: 14px;
+}
+
+.formGrid input,
+.formGrid select,
+.formGrid textarea {
+  background: #ffffff;
+
+  color: #222;
+}
+
+.formGrid input::placeholder,
+.formGrid textarea::placeholder {
+  color: #777;
+
+  opacity: 1;
+}
+
+.formGrid input:focus,
+.formGrid textarea:focus,
+.formGrid select:focus {
+  outline: none;
+
+  border: 2px solid #d4af37;
+
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.25);
+}
+
+.fieldFull {
+  grid-column: span 2;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label,
+.fieldFull label {
+  font-weight: 700;
+  color: #5b1a1a;
+}
+
+.field input,
+.field select,
+.field textarea {
+  color: #222;
+  background: #fff;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #888;
+}
+
+.uploadBtn:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+.progressBox {
+  margin-top: 20px;
+
+  font-weight: bold;
+
+  color: #5b1a1a;
+}
+
+.progress {
+  height: 12px;
+
+  background: #eee;
+
+  border-radius: 20px;
+
+  overflow: hidden;
+
+  margin-top: 10px;
+}
+
+.progress span {
+  display: block;
+
+  height: 100%;
+
+  background: #d4af37;
+
+  transition: 0.3s;
+}

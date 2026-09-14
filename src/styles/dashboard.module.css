@@ -1,0 +1,270 @@
+.page {
+  padding: 25px;
+
+  min-height: 100vh;
+
+  color: #5b1a1a;
+
+  background:
+    radial-gradient(
+      circle at top left,
+
+      rgba(212, 175, 55, 0.25),
+      transparent 25%
+    ),
+    linear-gradient(135deg, #fff8e7, #f5e6c8);
+}
+
+/* HERO */
+
+.hero {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  gap: 20px;
+
+  padding: 30px;
+
+  border-radius: 30px;
+
+  background: linear-gradient(135deg, #5b1a1a, #3b2414);
+
+  color: white;
+
+  box-shadow: 0 20px 45px rgba(91, 26, 26, 0.25);
+
+  margin-bottom: 30px;
+}
+
+.hero h1 {
+  font-size: 28px;
+
+  font-weight: 800;
+
+  font-family: Cinzel, serif;
+}
+
+.hero p {
+  margin-top: 10px;
+
+  max-width: 650px;
+
+  line-height: 1.7;
+
+  color: #f8e7c0;
+}
+
+.primaryBtn {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  margin-top: 20px;
+
+  padding: 12px 20px;
+
+  border-radius: 999px;
+
+  background: #d4af37;
+
+  color: #5b1a1a;
+
+  font-weight: 800;
+
+  text-decoration: none;
+
+  transition: 0.3s;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-3px);
+
+  background: #ffd966;
+}
+
+.badge {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 14px 20px;
+
+  border-radius: 999px;
+
+  background: #d4af37;
+
+  color: #5b1a1a;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* CARDS */
+
+.grid {
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+
+  gap: 20px;
+}
+
+.card {
+  display: flex;
+
+  align-items: center;
+
+  gap: 18px;
+
+  padding: 25px;
+
+  border-radius: 25px;
+
+  background: white;
+
+  border: 2px solid;
+
+  text-decoration: none;
+
+  transition: 0.3s;
+
+  box-shadow: 0 15px 35px rgba(91, 26, 26, 0.12);
+}
+
+.card:hover {
+  transform: translateY(-8px);
+}
+
+.icon {
+  font-size: 35px;
+}
+
+.info h3 {
+  font-size: 15px;
+
+  color: #6b4b2a;
+}
+
+.info p {
+  font-size: 32px;
+
+  font-weight: 900;
+
+  color: #5b1a1a;
+}
+
+/* ACTIONS */
+
+.actions {
+  margin-top: 40px;
+}
+
+.actions h2 {
+  font-family: Cinzel, serif;
+
+  font-size: 25px;
+
+  margin-bottom: 20px;
+}
+
+.actionsGrid {
+  display: grid;
+
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+
+  gap: 15px;
+}
+
+.actionsGrid a {
+  padding: 18px;
+
+  background: white;
+
+  border-radius: 20px;
+
+  text-decoration: none;
+
+  color: #5b1a1a;
+
+  font-weight: 700;
+
+  border: 1px solid rgba(212, 175, 55, 0.5);
+
+  transition: 0.3s;
+
+  text-align: center;
+}
+
+.actionsGrid a:hover {
+  background: #5b1a1a;
+
+  color: white;
+}
+
+/* MISSION */
+
+.mission {
+  margin-top: 40px;
+
+  padding: 35px;
+
+  border-radius: 30px;
+
+  background: #5b1a1a;
+
+  color: white;
+
+  text-align: center;
+}
+
+.missionIcon {
+  font-size: 40px;
+
+  color: #ffd966;
+}
+
+.mission h2 {
+  font-family: Cinzel, serif;
+
+  margin-top: 15px;
+
+  font-size: 30px;
+}
+
+.mission p {
+  margin-top: 15px;
+
+  line-height: 1.8;
+
+  color: #f8e7c0;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 15px;
+  }
+
+  .hero {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
+  .hero h1 {
+    font-size: 22px;
+  }
+
+  .badge {
+    width: 100%;
+
+    justify-content: center;
+  }
+}
