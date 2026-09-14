@@ -16,6 +16,7 @@ import {
   FiUserX,
   FiMessageSquare,
   FiMail,
+  FiFileText,
 } from "react-icons/fi";
 
 import logo from "../assets/images/logo.jpg";
@@ -24,16 +25,13 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   // ==========================================
   // GET ADMIN INFORMATION
   // ==========================================
-
   const getAdminInfo = () => {
     let name = "";
-
     let email = "";
 
     // ------------------------------------------
     // Check individual localStorage values
     // ------------------------------------------
-
     name =
       localStorage.getItem("adminName") ||
       localStorage.getItem("admin_name") ||
@@ -47,7 +45,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     // ------------------------------------------
     // Check possible stored admin objects
     // ------------------------------------------
-
     const possibleAdminKeys = [
       "admin",
       "adminUser",
@@ -88,7 +85,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     // ------------------------------------------
     // Final fallback
     // ------------------------------------------
-
     return {
       name: name || "Administrator",
       email: email || "Admin account",
@@ -100,7 +96,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   // ==========================================
   // CREATE AVATAR INITIALS
   // ==========================================
-
   const getInitials = (name) => {
     if (!name) {
       return "A";
@@ -122,7 +117,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   // ==========================================
   // LOGOUT
   // ==========================================
-
   const handleLogout = () => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminExpiry");
@@ -133,7 +127,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   // ==========================================
   // CLOSE MOBILE SIDEBAR AFTER CLICK
   // ==========================================
-
   const handleNavigation = () => {
     if (isOpen) {
       toggleSidebar();
@@ -143,7 +136,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
   // ==========================================
   // NAV LINK CLASS
   // ==========================================
-
   const navClass = ({ isActive }) => {
     return isActive ? styles.active : "";
   };
@@ -153,7 +145,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       {/* ==========================================
           MOBILE OVERLAY
       ========================================== */}
-
       {isOpen && (
         <div
           className={styles.overlay}
@@ -165,7 +156,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
       {/* ==========================================
           SIDEBAR
       ========================================== */}
-
       <aside
         className={`${styles.sidebar} ${isOpen ? styles.open : ""}`}
         aria-label="Finance administrator navigation"
@@ -173,7 +163,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         {/* ==========================================
             MOBILE CLOSE BUTTON
         ========================================== */}
-
         <button
           type="button"
           className={styles.closeBtn}
@@ -186,7 +175,6 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         {/* ==========================================
             LOGO SECTION
         ========================================== */}
-
         <div className={styles.sidebarLogoBox}>
           <img
             src={logo}
@@ -204,46 +192,41 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         {/* ==========================================
             NAVIGATION
         ========================================== */}
-
         <nav
           className={styles.nav}
           aria-label="Finance administrator navigation"
         >
           {/* DASHBOARD */}
-
           <NavLink
             to="/admin/dashboard"
             className={navClass}
             onClick={handleNavigation}
           >
             <FiHome />
-
             <span>Dashboard</span>
           </NavLink>
 
           {/* DONATIONS */}
-
           <NavLink
             to="/admin/donate"
             className={navClass}
             onClick={handleNavigation}
           >
             <FiDollarSign />
-
             <span>Donations</span>
           </NavLink>
 
           {/* MONTHLY PAYMENT */}
-
           <NavLink
             to="/admin/monthly-payment"
             className={navClass}
             onClick={handleNavigation}
           >
             <FiCreditCard />
-
             <span>Monthly Payment</span>
           </NavLink>
+
+          {/* EXPENSES */}
           <NavLink
             to="/admin/expenses"
             className={navClass}
@@ -254,26 +237,22 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           </NavLink>
 
           {/* EVENTS MANAGEMENT */}
-
           <NavLink
             to="/admin/events"
             className={navClass}
             onClick={handleNavigation}
           >
             <FiCalendar />
-
             <span>Events</span>
           </NavLink>
 
           {/* ANNOUNCEMENTS */}
-
           <NavLink
             to="/admin/announcements"
             className={navClass}
             onClick={handleNavigation}
           >
             <FiBell />
-
             <span>Announcements</span>
           </NavLink>
         </nav>
@@ -282,13 +261,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
             FINANCE ADMIN PROFILE
             ABOVE LOGOUT
         ========================================== */}
-
         <div
           className={styles.adminProfile}
           aria-label="Current finance administrator"
         >
           {/* Avatar */}
-
           <div className={styles.adminAvatar}>
             <span>{adminInitials}</span>
 
@@ -296,13 +273,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
           </div>
 
           {/* Admin information */}
-
           <div className={styles.adminProfileInfo}>
             <div className={styles.adminProfileName}>{admin.name}</div>
 
             <div className={styles.adminProfileEmail}>
               <FiMail size={12} />
-
               <span>{admin.email}</span>
             </div>
           </div>
@@ -311,10 +286,8 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         {/* ==========================================
             LOGOUT BUTTON
         ========================================== */}
-
         <button type="button" className={styles.logout} onClick={handleLogout}>
           <FiLogOut />
-
           <span>Logout</span>
         </button>
       </aside>
