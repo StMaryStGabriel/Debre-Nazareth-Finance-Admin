@@ -168,6 +168,10 @@
   cursor: pointer;
 }
 
+.alert > button:last-child:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
 .alert > button:last-child svg {
   width: 18px;
   height: 18px;
@@ -344,6 +348,10 @@
   margin-left: 2px;
 }
 
+/* ============================================================
+   INPUTS
+============================================================ */
+
 .inputWrapper,
 .selectWrapper,
 .textareaWrapper {
@@ -357,7 +365,8 @@
   background: #ffffff;
   transition:
     border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
 .inputWrapper:focus-within,
@@ -840,7 +849,9 @@
 
 @media (max-width: 1150px) {
   .contentGrid {
-    grid-template-columns: minmax(0, 1fr) 320px;
+    grid-template-columns:
+      minmax(0, 1fr)
+      320px;
   }
 
   .container {
