@@ -33,7 +33,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/finance">
       <Routes>
         {/* =====================
             DEFAULT REDIRECT
@@ -94,6 +94,9 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* EXPENSES */}
+
         <Route
           path="/admin/expenses"
           element={
@@ -102,6 +105,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
         {/* EVENTS */}
 
         <Route
