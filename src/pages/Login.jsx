@@ -117,7 +117,15 @@ export default function Login() {
         backgroundImage: `url(${bg})`,
       }}
     >
+      {/* ==========================================
+          BACKGROUND OVERLAY
+      ========================================== */}
+
       <div className={styles.overlay} />
+
+      {/* ==========================================
+          LOGIN CARD
+      ========================================== */}
 
       <div className={styles.card}>
         {/* ==========================================
@@ -144,7 +152,11 @@ export default function Login() {
             ERROR
         ========================================== */}
 
-        {error && <div className={styles.error}>{error}</div>}
+        {error && (
+          <div className={styles.error} role="alert" aria-live="polite">
+            {error}
+          </div>
+        )}
 
         {/* ==========================================
             LOGIN FORM
@@ -154,14 +166,17 @@ export default function Login() {
           {/* EMAIL */}
 
           <div className={styles.inputGroup}>
-            <label>Email Address</label>
+            <label htmlFor="finance-admin-email">Email Address</label>
 
             <input
+              id="finance-admin-email"
               type="email"
               placeholder="Enter finance admin email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               required
             />
           </div>
@@ -169,10 +184,11 @@ export default function Login() {
           {/* PASSWORD */}
 
           <div className={styles.inputGroup}>
-            <label>Password</label>
+            <label htmlFor="finance-admin-password">Password</label>
 
             <div className={styles.passwordBox}>
               <input
+                id="finance-admin-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter finance admin password"
                 value={password}
@@ -184,8 +200,9 @@ export default function Login() {
               <button
                 type="button"
                 className={styles.eye}
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => setShowPassword((previous) => !previous)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
@@ -195,13 +212,14 @@ export default function Login() {
           {/* REMEMBER ME */}
 
           <div className={styles.options}>
-            <label>
+            <label className={styles.rememberLabel}>
               <input
                 type="checkbox"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
               />
-              Remember me
+
+              <span>Remember me</span>
             </label>
           </div>
 

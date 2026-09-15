@@ -23,31 +23,22 @@ export default function CreateAdmin() {
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
-
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
-
   const [secret, setSecret] = useState("");
-
   const [showPassword, setShowPassword] = useState(false);
-
   const [loading, setLoading] = useState(false);
-
   const [message, setMessage] = useState("");
-
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setError("");
-
     setMessage("");
 
     if (!name || !email || !password || !secret) {
       setError("Please fill all fields");
-
       return;
     }
 
@@ -93,7 +84,21 @@ export default function CreateAdmin() {
         backgroundImage: `url(${bg})`,
       }}
     >
+      {/* ==========================================
+          BACKGROUND OVERLAY
+      ========================================== */}
+
+      <div className={styles.overlay} />
+
+      {/* ==========================================
+          CREATE ADMIN CARD
+      ========================================== */}
+
       <div className={styles.card}>
+        {/* ==========================================
+            BRAND
+        ========================================== */}
+
         <div className={styles.brand}>
           <img src={logo} className={styles.logo} alt="Church Logo" />
 
@@ -104,78 +109,126 @@ export default function CreateAdmin() {
           <span className={styles.access}>Finance Administration Access</span>
         </div>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {/* ==========================================
+            ERROR MESSAGE
+        ========================================== */}
 
-        {message && <div className={styles.success}>{message}</div>}
+        {error && (
+          <div className={styles.error} role="alert" aria-live="polite">
+            {error}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit}>
-          {/* FINANCE ADMIN NAME */}
+        {/* ==========================================
+            SUCCESS MESSAGE
+        ========================================== */}
+
+        {message && (
+          <div className={styles.success} role="status" aria-live="polite">
+            {message}
+          </div>
+        )}
+
+        {/* ==========================================
+            FORM
+        ========================================== */}
+
+        <form
+          onSubmit={handleSubmit}
+          className={styles.form}
+          noValidate={false}
+        >
+          {/* ==========================================
+              FINANCE ADMIN NAME
+          ========================================== */}
+
           <div className={styles.group}>
-            <label>Finance Admin Name</label>
+            <label htmlFor="finance-admin-name">Finance Admin Name</label>
 
             <input
+              id="finance-admin-name"
               type="text"
               placeholder="Enter finance admin name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
               required
             />
           </div>
 
-          {/* FINANCE ADMIN EMAIL */}
+          {/* ==========================================
+              FINANCE ADMIN EMAIL
+          ========================================== */}
+
           <div className={styles.group}>
-            <label>
+            <label htmlFor="finance-admin-email">
               <FiMail />
-              Finance Admin Email
+              <span>Finance Admin Email</span>
             </label>
 
             <input
+              id="finance-admin-email"
               type="email"
               placeholder="Enter finance admin email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
               required
             />
           </div>
 
-          {/* FINANCE ADMIN PASSWORD */}
+          {/* ==========================================
+              FINANCE ADMIN PASSWORD
+          ========================================== */}
+
           <div className={styles.group}>
-            <label>
+            <label htmlFor="finance-admin-password">
               <FiLock />
-              Finance Admin Password
+              <span>Finance Admin Password</span>
             </label>
 
             <div className={styles.password}>
               <input
+                id="finance-admin-password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Create secure password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
               />
 
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
+                className={styles.passwordToggle}
+                onClick={() => setShowPassword((previous) => !previous)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-pressed={showPassword}
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
             </div>
           </div>
 
-          {/* FINANCE ADMIN SECRET KEY */}
+          {/* ==========================================
+              FINANCE ADMIN SECRET KEY
+          ========================================== */}
+
           <div className={styles.group}>
-            <label>
+            <label htmlFor="finance-admin-secret">
               <FiKey />
-              Finance Admin Secret Key
+              <span>Finance Admin Secret Key</span>
             </label>
 
             <input
+              id="finance-admin-secret"
               type="password"
               placeholder="Enter finance admin secret"
               value={secret}
               onChange={(e) => setSecret(e.target.value)}
+              autoComplete="off"
               required
             />
 
@@ -184,7 +237,10 @@ export default function CreateAdmin() {
             </small>
           </div>
 
-          {/* CREATE BUTTON */}
+          {/* ==========================================
+              CREATE BUTTON
+          ========================================== */}
+
           <button type="submit" className={styles.createBtn} disabled={loading}>
             <FiUserPlus />
 
@@ -193,15 +249,21 @@ export default function CreateAdmin() {
               : "Create Finance Administrator"}
           </button>
 
-          {/* BACK TO LOGIN */}
+          {/* ==========================================
+              BACK TO LOGIN
+          ========================================== */}
+
           <Link to="/admin/login" className={styles.back}>
             Already have an account? Login
           </Link>
 
-          {/* SECURITY */}
+          {/* ==========================================
+              SECURITY
+          ========================================== */}
+
           <div className={styles.security}>
             <FiShield />
-            Finance Administrator Access Only
+            <span>Finance Administrator Access Only</span>
           </div>
         </form>
       </div>
