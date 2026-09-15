@@ -9,6 +9,7 @@ import api from "../services/api";
 import styles from "../styles/login.module.css";
 
 import logo from "../assets/images/logo.jpg";
+
 import bg from "../assets/images/bg.jpg";
 
 export default function Login() {
@@ -38,7 +39,7 @@ export default function Login() {
       // FINANCE ADMIN LOGIN
       // ==========================================
 
-      const res = await api.post("/main-auth/login", {
+      const res = await api.post("/finance-auth/login", {
         email: email.trim().toLowerCase(),
         password,
       });
@@ -76,10 +77,10 @@ export default function Login() {
 
       localStorage.setItem("adminId", res.data._id);
 
-      // Backend returns role: "main"
+      // Backend returns role: "finance"
       // Keeping this unchanged so existing
       // authentication and authorization logic works.
-      localStorage.setItem("adminRole", res.data.role || "main");
+      localStorage.setItem("adminRole", res.data.role || "finance");
 
       // ==========================================
       // SESSION EXPIRY

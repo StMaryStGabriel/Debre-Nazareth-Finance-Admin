@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import { Link, useNavigate } from "react-router-dom";
 
 import {
@@ -53,9 +54,11 @@ export default function CreateAdmin() {
     try {
       setLoading(true);
 
+      // ==========================================
       // FINANCE ADMIN CREATION
-      // Endpoint intentionally kept unchanged
-      const res = await api.post("/main-auth/create-admin", {
+      // ==========================================
+
+      const res = await api.post("/finance-auth/create-admin", {
         name,
         email,
         password,
