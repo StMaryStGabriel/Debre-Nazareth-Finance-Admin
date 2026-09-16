@@ -14,7 +14,6 @@ import {
   FiRefreshCw,
   FiDollarSign,
   FiUsers,
-  FiClock,
   FiCheckCircle,
   FiXCircle,
   FiEye,
@@ -42,10 +41,10 @@ import { useNavigate } from "react-router-dom";
 // CONSTANTS
 // ============================================================
 
-const STATUS_OPTIONS = ["All", "Pending", "Approved", "Rejected"];
+const STATUS_OPTIONS = ["All", "Approved", "Rejected"];
 
-// Keep Square + Cash only.
-const PAYMENT_OPTIONS = ["All", "square", "cash"];
+// Keep Square + the three manual payment methods.
+const PAYMENT_OPTIONS = ["All", "square", "cash", "zelle", "check_money_order"];
 
 const REVENUE_TYPE_OPTIONS = [
   "4010 Membership",
@@ -193,6 +192,28 @@ const normalizePayment = (method) => {
     return "cash";
   }
 
+  // Zelle can arrive with different formatting.
+  if (
+    value === "zelle" ||
+    value === "zelle_payment" ||
+    value === "zelle payment"
+  ) {
+    return "zelle";
+  }
+
+  // Check / Money Order is stored as one payment method.
+  if (
+    value === "check_money_order" ||
+    value === "check/money order" ||
+    value === "check / money order" ||
+    value === "check-money-order" ||
+    value === "check money order" ||
+    value === "check" ||
+    value === "money order"
+  ) {
+    return "check_money_order";
+  }
+
   return value;
 };
 
@@ -204,9 +225,51 @@ const paymentLabel = (method) => {
     case "cash":
       return "Cash";
 
+    case "zelle":
+      return "Zelle";
+
+    case "check_money_order":
+      return "Check/Money Order";
+
     default:
       return method || "Unknown";
   }
+};
+
+// ============================================================
+// MANUAL PAYMENT METHODS
+// ============================================================
+
+const isManualPayment = (method) => {
+  const payment = normalizePayment(method);
+
+  return ["cash", "zelle", "check_money_order"].includes(payment);
+};
+
+// ============================================================
+// DONATION CATEGORY / REASON
+// ============================================================
+//
+// Manual donations (Cash, Zelle, Check/Money Order) use Revenue Type.
+// Square donations use the donor Message as the Donation Reason.
+// The public Square donation form currently sends this value as
+// `message`, so this keeps both donation flows compatible.
+// ============================================================
+
+const getDonationCategoryLabel = (donation) => {
+  return normalizePayment(donation?.paymentMethod) === "square"
+    ? "Donation Reason"
+    : "Revenue Type";
+};
+
+const getDonationCategoryValue = (donation) => {
+  if (!donation) {
+    return "—";
+  }
+
+  return normalizePayment(donation.paymentMethod) === "square"
+    ? donation.message || "—"
+    : donation.revenueType || "—";
 };
 
 // ============================================================
@@ -214,7 +277,7 @@ const paymentLabel = (method) => {
 // ============================================================
 //
 // Square donations are automatically authorized by Square.
-// Cash donations are recorded/approved by an administrator.
+// Manual donations are recorded/approved by an administrator.
 //
 // The backend should provide:
 // donation.approvedByName
@@ -347,6 +410,10 @@ export default function Donate() {
 
   const [paymentFilter, setPaymentFilter] = useState("All");
 
+  // Cash donations are classified by Revenue Type.
+  // Square/public donations are classified by Donation Reason (message).
+  const [donationReasonFilter, setDonationReasonFilter] = useState("All");
+
   // ==========================================================
   // DATE FILTERS
   // ==========================================================
@@ -370,6 +437,13 @@ export default function Donate() {
   const [approverFilter, setApproverFilter] = useState("All");
 
   const [selectedDonation, setSelectedDonation] = useState(null);
+
+  // Destructive/status-changing actions are restricted to the main administrator.
+  const [adminAlert, setAdminAlert] = useState({
+    open: false,
+    title: "",
+    message: "",
+  });
 
   const [showFilters, setShowFilters] = useState(false);
 
@@ -446,6 +520,32 @@ export default function Donate() {
   // AVAILABLE APPROVERS
   // ============================================================
 
+  // ============================================================
+  // AVAILABLE DONATION REASONS
+  // ============================================================
+  //
+  // For Square/public donations, the donor-entered reason is stored
+  // in `message`. For cash donations, Revenue Type remains separate.
+  // ============================================================
+
+  const availableDonationReasons = useMemo(() => {
+    const reasons = new Set();
+
+    donations.forEach((donation) => {
+      if (normalizePayment(donation?.paymentMethod) !== "square") {
+        return;
+      }
+
+      const reason = String(donation?.message || "").trim();
+
+      if (reason) {
+        reasons.add(reason);
+      }
+    });
+
+    return Array.from(reasons).sort((a, b) => a.localeCompare(b));
+  }, [donations]);
+
   const availableApprovers = useMemo(() => {
     const approvers = new Set();
 
@@ -487,6 +587,10 @@ export default function Donate() {
       count += 1;
     }
 
+    if (donationReasonFilter !== "All") {
+      count += 1;
+    }
+
     if (dateFilter) {
       count += 1;
     }
@@ -507,6 +611,7 @@ export default function Donate() {
   }, [
     statusFilter,
     paymentFilter,
+    donationReasonFilter,
     dateFilter,
     monthFilter,
     yearFilter,
@@ -547,6 +652,12 @@ export default function Donate() {
 
       const matchPayment = paymentFilter === "All" || payment === paymentFilter;
 
+      const donationReason = String(donation.message || "").trim();
+
+      const matchDonationReason =
+        donationReasonFilter === "All" ||
+        (payment === "square" && donationReason === donationReasonFilter);
+
       // ========================================================
       // DATE FILTER
       // ========================================================
@@ -582,6 +693,7 @@ export default function Donate() {
         matchSearch &&
         matchStatus &&
         matchPayment &&
+        matchDonationReason &&
         matchDate &&
         matchMonth &&
         matchYear &&
@@ -593,6 +705,7 @@ export default function Donate() {
     search,
     statusFilter,
     paymentFilter,
+    donationReasonFilter,
     dateFilter,
     monthFilter,
     yearFilter,
@@ -616,6 +729,10 @@ export default function Donate() {
 
     if (paymentFilter !== "All") {
       filters.push(`Payment: ${paymentLabel(paymentFilter)}`);
+    }
+
+    if (donationReasonFilter !== "All") {
+      filters.push(`Donation Reason: ${donationReasonFilter}`);
     }
 
     if (dateFilter) {
@@ -651,6 +768,7 @@ export default function Donate() {
     search,
     statusFilter,
     paymentFilter,
+    donationReasonFilter,
     dateFilter,
     monthFilter,
     yearFilter,
@@ -668,10 +786,6 @@ export default function Donate() {
       (item) => normalizeStatus(item.status) === "Approved",
     );
 
-    const pending = donations.filter(
-      (item) => normalizeStatus(item.status) === "Pending",
-    );
-
     const rejected = donations.filter(
       (item) => normalizeStatus(item.status) === "Rejected",
     );
@@ -684,17 +798,20 @@ export default function Donate() {
       (item) => normalizePayment(item.paymentMethod) === "cash",
     );
 
+    const zelleDonations = donations.filter(
+      (item) => normalizePayment(item.paymentMethod) === "zelle",
+    );
+
+    const checkMoneyOrderDonations = donations.filter(
+      (item) => normalizePayment(item.paymentMethod) === "check_money_order",
+    );
+
     const totalAmount = donations.reduce(
       (sum, item) => sum + Number(item.amount || 0),
       0,
     );
 
     const approvedAmount = approved.reduce(
-      (sum, item) => sum + Number(item.amount || 0),
-      0,
-    );
-
-    const pendingAmount = pending.reduce(
       (sum, item) => sum + Number(item.amount || 0),
       0,
     );
@@ -714,23 +831,35 @@ export default function Donate() {
       0,
     );
 
+    const zelleAmount = zelleDonations.reduce(
+      (sum, item) => sum + Number(item.amount || 0),
+      0,
+    );
+
+    const checkMoneyOrderAmount = checkMoneyOrderDonations.reduce(
+      (sum, item) => sum + Number(item.amount || 0),
+      0,
+    );
+
     return {
       total,
 
       approved: approved.length,
-      pending: pending.length,
       rejected: rejected.length,
 
       totalAmount,
       approvedAmount,
-      pendingAmount,
       rejectedAmount,
 
       squareCount: squareDonations.length,
       cashCount: cashDonations.length,
+      zelleCount: zelleDonations.length,
+      checkMoneyOrderCount: checkMoneyOrderDonations.length,
 
       squareAmount,
       cashAmount,
+      zelleAmount,
+      checkMoneyOrderAmount,
     };
   }, [donations]);
 
@@ -741,10 +870,6 @@ export default function Donate() {
   const filteredStatistics = useMemo(() => {
     const approved = filteredDonations.filter(
       (item) => normalizeStatus(item.status) === "Approved",
-    );
-
-    const pending = filteredDonations.filter(
-      (item) => normalizeStatus(item.status) === "Pending",
     );
 
     const rejected = filteredDonations.filter(
@@ -761,11 +886,6 @@ export default function Donate() {
       0,
     );
 
-    const pendingAmount = pending.reduce(
-      (sum, item) => sum + Number(item.amount || 0),
-      0,
-    );
-
     const rejectedAmount = rejected.reduce(
       (sum, item) => sum + Number(item.amount || 0),
       0,
@@ -774,11 +894,9 @@ export default function Donate() {
     return {
       total: filteredDonations.length,
       approved: approved.length,
-      pending: pending.length,
       rejected: rejected.length,
       totalAmount,
       approvedAmount,
-      pendingAmount,
       rejectedAmount,
     };
   }, [filteredDonations]);
@@ -868,74 +986,29 @@ export default function Donate() {
   };
 
   // ============================================================
-  // REJECT DONATION
+  // REJECT DONATION — MAIN ADMIN ONLY
   // ============================================================
 
-  const rejectDonation = (donation) => {
-    const confirmed = window.confirm(
-      `Reject donation from ${donation.fullName || "this donor"}?`,
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    updateStatus(donation, "Rejected");
+  const rejectDonation = () => {
+    setAdminAlert({
+      open: true,
+      title: "Main administrator required",
+      message:
+        "Rejecting donations is restricted. Please contact the main administrator to do this.",
+    });
   };
 
   // ============================================================
-  // DELETE DONATION
+  // DELETE DONATION — MAIN ADMIN ONLY
   // ============================================================
 
-  const deleteDonation = async (donation) => {
-    if (!donation?._id) {
-      return;
-    }
-
-    // ========================================================
-    // EXTRA DELETE PROTECTION
-    // User MUST type DELETE exactly.
-    // ========================================================
-
-    const deleteConfirmation = window.prompt(
-      `Delete donation ${
-        donation.donationId || ""
-      }?\n\nThis action cannot be undone.\n\nType DELETE to confirm:`,
-    );
-
-    // Cancelled, empty, incorrect, lowercase, etc.
-    // will all stop the deletion.
-    if (deleteConfirmation !== "DELETE") {
-      if (deleteConfirmation !== null) {
-        window.alert(
-          "Deletion cancelled.\n\nYou must type DELETE exactly to confirm.",
-        );
-      }
-
-      return;
-    }
-
-    try {
-      setActionLoading(`${donation._id}-delete`);
-
-      setError("");
-
-      await api.delete(`/donations/admin/${donation._id}`);
-
-      setDonations((previous) =>
-        previous.filter((item) => item._id !== donation._id),
-      );
-
-      if (selectedDonation?._id === donation._id) {
-        setSelectedDonation(null);
-      }
-    } catch (err) {
-      console.error("Delete donation error:", err);
-
-      setError(err.response?.data?.message || "Unable to delete donation.");
-    } finally {
-      setActionLoading(null);
-    }
+  const deleteDonation = () => {
+    setAdminAlert({
+      open: true,
+      title: "Delete action restricted",
+      message:
+        "You have to contact the main administrator to do this. Donation records cannot be deleted from this account.",
+    });
   };
 
   // ============================================================
@@ -962,6 +1035,7 @@ export default function Donate() {
     setSearch("");
     setStatusFilter("All");
     setPaymentFilter("All");
+    setDonationReasonFilter("All");
     setDateFilter("");
     setMonthFilter("All");
     setYearFilter("All");
@@ -1024,10 +1098,8 @@ export default function Donate() {
 
         "Payment Method": paymentLabel(donation.paymentMethod),
 
-        "Revenue Type":
-          normalizePayment(donation.paymentMethod) === "cash"
-            ? donation.revenueType || ""
-            : "",
+        [getDonationCategoryLabel(donation)]:
+          getDonationCategoryValue(donation),
 
         "Approved By": getApprovedBy(donation),
 
@@ -1091,12 +1163,6 @@ export default function Donate() {
           ).length,
         },
         {
-          Report: "Pending Donations",
-          Value: filteredDonations.filter(
-            (item) => normalizeStatus(item.status) === "Pending",
-          ).length,
-        },
-        {
           Report: "Rejected Donations",
           Value: filteredDonations.filter(
             (item) => normalizeStatus(item.status) === "Rejected",
@@ -1113,6 +1179,14 @@ export default function Donate() {
           Value: filteredDonations
             .filter((item) => normalizePayment(item.paymentMethod) === "cash")
             .reduce((sum, item) => sum + Number(item.amount || 0), 0),
+        },
+        {
+          Report: "Zelle Amount",
+          Value: filteredZelle,
+        },
+        {
+          Report: "Check/Money Order Amount",
+          Value: filteredCheckMoneyOrder,
         },
         {
           Report: "Applied Filters",
@@ -1197,7 +1271,7 @@ export default function Donate() {
             </td>
 
             <td>
-              ${payment === "cash" ? escapeHtml(donation.revenueType || "—") : "—"}
+              ${escapeHtml(getDonationCategoryValue(donation))}
             </td>
 
             <td>
@@ -1229,6 +1303,16 @@ export default function Donate() {
 
     const filteredSquare = filteredDonations
       .filter((item) => normalizePayment(item.paymentMethod) === "square")
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+    const filteredZelle = filteredDonations
+      .filter((item) => normalizePayment(item.paymentMethod) === "zelle")
+      .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+
+    const filteredCheckMoneyOrder = filteredDonations
+      .filter(
+        (item) => normalizePayment(item.paymentMethod) === "check_money_order",
+      )
       .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
     const printWindow = window.open("", "_blank", "width=1200,height=800");
@@ -1328,7 +1412,7 @@ export default function Donate() {
               display: grid;
 
               grid-template-columns:
-                repeat(5, 1fr);
+                repeat(3, 1fr);
 
               gap: 12px;
 
@@ -1455,7 +1539,9 @@ export default function Donate() {
               color: #1d4ed8;
             }
 
-            .payment.cash {
+            .payment.cash,
+            .payment.zelle,
+            .payment.check_money_order {
               background: #ecfdf3;
               color: #15803d;
             }
@@ -1616,6 +1702,30 @@ export default function Donate() {
             <div class="summary-card">
 
               <span>
+                Zelle
+              </span>
+
+              <strong>
+                ${escapeHtml(formatCurrency(filteredZelle))}
+              </strong>
+
+            </div>
+
+            <div class="summary-card">
+
+              <span>
+                Check/Money Order
+              </span>
+
+              <strong>
+                ${escapeHtml(formatCurrency(filteredCheckMoneyOrder))}
+              </strong>
+
+            </div>
+
+            <div class="summary-card">
+
+              <span>
                 Approved
               </span>
 
@@ -1674,7 +1784,7 @@ export default function Donate() {
                 </th>
 
                 <th>
-                  Revenue Type
+                  Revenue Type / Donation Reason
                 </th>
 
                 <th>
@@ -1713,6 +1823,16 @@ export default function Donate() {
             <span>
               Cash:
               ${escapeHtml(formatCurrency(filteredCash))}
+            </span>
+
+            <span>
+              Zelle:
+              ${escapeHtml(formatCurrency(filteredZelle))}
+            </span>
+
+            <span>
+              Check/Money Order:
+              ${escapeHtml(formatCurrency(filteredCheckMoneyOrder))}
             </span>
 
             <span>
@@ -2221,11 +2341,11 @@ export default function Donate() {
                 <div class="item">
 
                   <span>
-                    Revenue Type
+                    ${escapeHtml(getDonationCategoryLabel(donation))}
                   </span>
 
                   <strong>
-                    ${payment === "cash" ? escapeHtml(donation.revenueType || "—") : "—"}
+                    ${escapeHtml(getDonationCategoryValue(donation))}
                   </strong>
 
                 </div>
@@ -2337,6 +2457,77 @@ export default function Donate() {
   };
 
   // ============================================================
+  // APPROVER BREAKDOWN
+  // ============================================================
+  //
+  // Shows the total donation amount associated with each approver.
+  // Square is treated as the system authorization and appears as
+  // its own group. Administrator approvers are grouped by name.
+  // This is calculated from the currently filtered donation list,
+  // so the main admin can classify totals by date, month, year,
+  // payment method, donation reason, or approver.
+  // ============================================================
+
+  const approverBreakdown = useMemo(() => {
+    const grouped = new Map();
+
+    filteredDonations.forEach((donation) => {
+      const approver = getApprovedBy(donation);
+
+      if (!approver || approver === "—") {
+        return;
+      }
+
+      const key = String(approver).trim();
+
+      if (!key) {
+        return;
+      }
+
+      const current = grouped.get(key) || {
+        name: key,
+        count: 0,
+        amount: 0,
+        squareCount: 0,
+        cashCount: 0,
+        zelleCount: 0,
+        checkMoneyOrderCount: 0,
+      };
+
+      const payment = normalizePayment(donation.paymentMethod);
+
+      current.count += 1;
+      current.amount += Number(donation.amount || 0);
+
+      if (payment === "square") {
+        current.squareCount += 1;
+      }
+
+      if (payment === "cash") {
+        current.cashCount += 1;
+      }
+
+      if (payment === "zelle") {
+        current.zelleCount += 1;
+      }
+
+      if (payment === "check_money_order") {
+        current.checkMoneyOrderCount += 1;
+      }
+
+      grouped.set(key, current);
+    });
+
+    return Array.from(grouped.values()).sort((a, b) => {
+      if (b.amount !== a.amount) {
+        return b.amount - a.amount;
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+  }, [filteredDonations]);
+
+  // ============================================================
   // RETURN
   // ============================================================
 
@@ -2356,7 +2547,10 @@ export default function Donate() {
 
             <h1>Donation Management</h1>
 
-            <p>Review, approve and manage church donation submissions.</p>
+            <p>
+              Manage church donation records, classifications and payment
+              submissions.
+            </p>
           </div>
 
           <div className={styles.heroRight}>
@@ -2428,38 +2622,6 @@ export default function Donate() {
               <small>Total donation value</small>
             </div>
           </div>
-
-          <div className={styles.statCard}>
-            <div className={`${styles.statIcon} ${styles.orangeIcon}`}>
-              <FiClock />
-            </div>
-
-            <div className={styles.statInfo}>
-              <span>Pending Review</span>
-
-              <strong>{statistics.pending}</strong>
-
-              <small>
-                {formatCurrency(statistics.pendingAmount)} awaiting review
-              </small>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={`${styles.statIcon} ${styles.greenIcon}`}>
-              <FiCheckCircle />
-            </div>
-
-            <div className={styles.statInfo}>
-              <span>Approved</span>
-
-              <strong>{statistics.approved}</strong>
-
-              <small>
-                {formatCurrency(statistics.approvedAmount)} approved
-              </small>
-            </div>
-          </div>
         </section>
 
         {/* ==================================================
@@ -2506,6 +2668,46 @@ export default function Donate() {
               <small>
                 {statistics.cashCount} cash donation
                 {statistics.cashCount === 1 ? "" : "s"}
+              </small>
+            </div>
+          </div>
+
+          {/* ZELLE */}
+
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.greenIcon}`}>
+              <FiCreditCard />
+            </div>
+
+            <div className={styles.statInfo}>
+              <span>Zelle Donations</span>
+
+              <strong>{formatCurrency(statistics.zelleAmount)}</strong>
+
+              <small>
+                {statistics.zelleCount} Zelle donation
+                {statistics.zelleCount === 1 ? "" : "s"}
+              </small>
+            </div>
+          </div>
+
+          {/* CHECK / MONEY ORDER */}
+
+          <div className={styles.statCard}>
+            <div className={`${styles.statIcon} ${styles.orangeIcon}`}>
+              <FiDollarSign />
+            </div>
+
+            <div className={styles.statInfo}>
+              <span>Check/Money Order</span>
+
+              <strong>
+                {formatCurrency(statistics.checkMoneyOrderAmount)}
+              </strong>
+
+              <small>
+                {statistics.checkMoneyOrderCount} donation
+                {statistics.checkMoneyOrderCount === 1 ? "" : "s"}
               </small>
             </div>
           </div>
@@ -2673,6 +2875,50 @@ export default function Donate() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* ==================================================
+                DONATION REASON
+            ================================================== */}
+
+            <div className={styles.filterItem}>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                <FiMessageCircle />
+                Donation Reason
+              </label>
+
+              <select
+                value={donationReasonFilter}
+                onChange={(event) =>
+                  setDonationReasonFilter(event.target.value)
+                }
+              >
+                <option value="All">All Donation Reasons</option>
+
+                {availableDonationReasons.map((reason) => (
+                  <option key={reason} value={reason}>
+                    {reason}
+                  </option>
+                ))}
+              </select>
+
+              <small
+                style={{
+                  display: "block",
+                  marginTop: "6px",
+                  color: "#64748b",
+                  fontSize: "11px",
+                  lineHeight: 1.4,
+                }}
+              >
+                Applies to Square/public donations.
+              </small>
             </div>
 
             {/* ==================================================
@@ -3033,37 +3279,275 @@ export default function Donate() {
                 {filteredStatistics.approved}
               </strong>
             </div>
+          </section>
+        )}
+
+        {/* ==================================================
+            APPROVER BREAKDOWN
+        ================================================== */}
+
+        {approverBreakdown.length > 0 && (
+          <section
+            style={{
+              marginBottom: "18px",
+              padding: "20px",
+              border: "1px solid rgba(91,26,26,0.10)",
+              borderRadius: "16px",
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(250,247,240,0.96))",
+              boxShadow: "0 8px 30px rgba(15,23,42,0.05)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: "16px",
+                flexWrap: "wrap",
+                marginBottom: "16px",
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    color: "#5b1a1a",
+                    fontSize: "12px",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  <FiUsers />
+                  Approval & Authorization Breakdown
+                </div>
+
+                <h2
+                  style={{
+                    margin: "5px 0 4px",
+                    color: "#111827",
+                    fontSize: "20px",
+                  }}
+                >
+                  Donation totals by Approved By
+                </h2>
+
+                <p
+                  style={{
+                    margin: 0,
+                    color: "#64748b",
+                    fontSize: "13px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {filterDescription
+                    ? "Totals below reflect the currently applied filters."
+                    : "Totals below reflect all currently loaded donation records."}
+                </p>
+              </div>
+
+              <div
+                style={{
+                  minWidth: "150px",
+                  padding: "10px 14px",
+                  borderRadius: "12px",
+                  background: "rgba(91,26,26,0.06)",
+                  border: "1px solid rgba(91,26,26,0.10)",
+                  textAlign: "right",
+                }}
+              >
+                <span
+                  style={{
+                    display: "block",
+                    color: "#64748b",
+                    fontSize: "10px",
+                    fontWeight: 800,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Groups
+                </span>
+
+                <strong
+                  style={{
+                    display: "block",
+                    marginTop: "3px",
+                    color: "#5b1a1a",
+                    fontSize: "22px",
+                  }}
+                >
+                  {approverBreakdown.length}
+                </strong>
+              </div>
+            </div>
 
             <div
               style={{
-                padding: "14px 16px",
-                border: "1px solid rgba(100,116,139,0.15)",
-                borderRadius: "12px",
-                background: "#fff",
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+                gap: "12px",
               }}
             >
-              <span
-                style={{
-                  display: "block",
-                  color: "#64748b",
-                  fontSize: "11px",
-                  fontWeight: 800,
-                  textTransform: "uppercase",
-                }}
-              >
-                Filtered Pending
-              </span>
+              {approverBreakdown.map((item) => (
+                <button
+                  key={item.name}
+                  type="button"
+                  onClick={() =>
+                    setApproverFilter(
+                      approverFilter === item.name ? "All" : item.name,
+                    )
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "15px",
+                    border:
+                      approverFilter === item.name
+                        ? "2px solid #5b1a1a"
+                        : "1px solid rgba(100,116,139,0.16)",
+                    borderRadius: "14px",
+                    background:
+                      approverFilter === item.name
+                        ? "rgba(91,26,26,0.055)"
+                        : "#ffffff",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "all 160ms ease",
+                  }}
+                  title={
+                    approverFilter === item.name
+                      ? "Remove this approver filter"
+                      : `Filter donations by ${item.name}`
+                  }
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        minWidth: 0,
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: "38px",
+                          height: "38px",
+                          flex: "0 0 38px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "11px",
+                          background:
+                            item.name === "Square"
+                              ? "rgba(29,78,216,0.10)"
+                              : "rgba(21,128,61,0.10)",
+                          color: item.name === "Square" ? "#1d4ed8" : "#15803d",
+                        }}
+                      >
+                        {item.name === "Square" ? (
+                          <FiCreditCard />
+                        ) : (
+                          <FiUsers />
+                        )}
+                      </span>
 
-              <strong
-                style={{
-                  display: "block",
-                  marginTop: "5px",
-                  fontSize: "20px",
-                  color: "#a16207",
-                }}
-              >
-                {filteredStatistics.pending}
-              </strong>
+                      <div style={{ minWidth: 0 }}>
+                        <strong
+                          style={{
+                            display: "block",
+                            color: "#1f2937",
+                            fontSize: "14px",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {item.name}
+                        </strong>
+
+                        <span
+                          style={{
+                            display: "block",
+                            marginTop: "2px",
+                            color: "#64748b",
+                            fontSize: "11px",
+                          }}
+                        >
+                          {item.count} donation
+                          {item.count === 1 ? "" : "s"}
+                          {item.name === "Square"
+                            ? " • automatic authorization"
+                            : " • administrator"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {approverFilter === item.name && (
+                      <FiCheckCircle
+                        style={{
+                          flex: "0 0 auto",
+                          color: "#5b1a1a",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: "13px",
+                      paddingTop: "12px",
+                      borderTop: "1px solid rgba(100,116,139,0.12)",
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "block",
+                        color: "#64748b",
+                        fontSize: "10px",
+                        fontWeight: 800,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      Total donation amount
+                    </span>
+
+                    <strong
+                      style={{
+                        display: "block",
+                        marginTop: "3px",
+                        color: "#5b1a1a",
+                        fontSize: "21px",
+                      }}
+                    >
+                      {formatCurrency(item.amount)} USD
+                    </strong>
+
+                    <span
+                      style={{
+                        display: "block",
+                        marginTop: "4px",
+                        color: "#94a3b8",
+                        fontSize: "10px",
+                      }}
+                    >
+                      {item.cashCount} cash • {item.zelleCount} Zelle •{" "}
+                      {item.checkMoneyOrderCount} check/money order •{" "}
+                      {item.squareCount} Square
+                    </span>
+                  </div>
+                </button>
+              ))}
             </div>
           </section>
         )}
@@ -3146,7 +3630,7 @@ export default function Donate() {
 
                     <th>Payment</th>
 
-                    <th>Revenue Type</th>
+                    <th>Revenue Type / Donation Reason</th>
 
                     <th>Date</th>
 
@@ -3196,15 +3680,15 @@ export default function Donate() {
                           <div className={styles.paymentMethod}>
                             <div
                               className={`${styles.paymentIcon} ${
-                                payment === "cash"
-                                  ? styles.cashPayment
-                                  : styles.squarePayment
+                                payment === "square"
+                                  ? styles.squarePayment
+                                  : styles.cashPayment
                               }`}
                             >
-                              {payment === "cash" ? (
-                                <FiDollarSign />
-                              ) : (
+                              {payment === "square" ? (
                                 <FiCreditCard />
+                              ) : (
+                                <FiDollarSign />
                               )}
                             </div>
 
@@ -3217,14 +3701,12 @@ export default function Donate() {
                             style={{
                               maxWidth: "240px",
                               fontSize: "12px",
-                              fontWeight: payment === "cash" ? 700 : 500,
+                              fontWeight: 700,
                               lineHeight: 1.4,
-                              color: payment === "cash" ? "#334155" : "#94a3b8",
+                              color: "#334155",
                             }}
                           >
-                            {payment === "cash"
-                              ? donation.revenueType || "—"
-                              : "—"}
+                            {getDonationCategoryValue(donation)}
                           </div>
                         </td>
 
@@ -3379,13 +3861,9 @@ export default function Donate() {
                       </div>
 
                       <div>
-                        <span>Revenue Type</span>
+                        <span>{getDonationCategoryLabel(donation)}</span>
 
-                        <strong>
-                          {payment === "cash"
-                            ? donation.revenueType || "—"
-                            : "—"}
-                        </strong>
+                        <strong>{getDonationCategoryValue(donation)}</strong>
                       </div>
 
                       <div>
@@ -3530,10 +4008,10 @@ export default function Donate() {
 
                   <div className={styles.detailItem}>
                     {normalizePayment(selectedDonation.paymentMethod) ===
-                    "cash" ? (
-                      <FiDollarSign />
-                    ) : (
+                    "square" ? (
                       <FiCreditCard />
+                    ) : (
+                      <FiDollarSign />
                     )}
 
                     <div>
@@ -3546,16 +4024,18 @@ export default function Donate() {
                   </div>
 
                   <div className={styles.detailItem}>
-                    <FiDollarSign />
+                    {normalizePayment(selectedDonation.paymentMethod) ===
+                    "square" ? (
+                      <FiMessageCircle />
+                    ) : (
+                      <FiDollarSign />
+                    )}
 
                     <div>
-                      <span>Revenue Type</span>
+                      <span>{getDonationCategoryLabel(selectedDonation)}</span>
 
                       <strong>
-                        {normalizePayment(selectedDonation.paymentMethod) ===
-                        "cash"
-                          ? selectedDonation.revenueType || "—"
-                          : "—"}
+                        {getDonationCategoryValue(selectedDonation)}
                       </strong>
                     </div>
                   </div>
@@ -3592,19 +4072,19 @@ export default function Donate() {
 
                 {/* CASH PAYMENT NOTICE */}
 
-                {normalizePayment(selectedDonation.paymentMethod) ===
-                  "cash" && (
+                {isManualPayment(selectedDonation.paymentMethod) && (
                   <div className={styles.messageBox}>
                     <div className={styles.messageIcon}>
                       <FiDollarSign />
                     </div>
 
                     <div>
-                      <span>Cash Donation</span>
+                      <span>Manual Donation</span>
 
                       <p>
-                        This donation was recorded as a cash payment by the
-                        administrator.
+                        This donation was recorded as a manual payment by the
+                        administrator using{" "}
+                        {paymentLabel(selectedDonation.paymentMethod)}.
                       </p>
                     </div>
                   </div>
@@ -3720,6 +4200,72 @@ export default function Donate() {
                     Delete
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ==================================================
+              MAIN ADMINISTRATOR ALERT
+          ================================================== */}
+
+          {adminAlert.open && (
+            <div
+              className={styles.modalOverlay}
+              role="presentation"
+              onMouseDown={(event) => {
+                if (event.target === event.currentTarget) {
+                  setAdminAlert({ open: false, title: "", message: "" });
+                }
+              }}
+            >
+              <div
+                className={styles.modal}
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby="admin-alert-title"
+                style={{ maxWidth: "460px", textAlign: "center" }}
+              >
+                <div
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    margin: "0 auto 18px",
+                    borderRadius: "50%",
+                    display: "grid",
+                    placeItems: "center",
+                    background: "linear-gradient(135deg, #fff1f2, #ffe4e6)",
+                    color: "#be123c",
+                    fontSize: "30px",
+                    fontWeight: 800,
+                  }}
+                >
+                  <FiAlertCircle />
+                </div>
+
+                <h2 id="admin-alert-title" style={{ margin: "0 0 10px" }}>
+                  {adminAlert.title}
+                </h2>
+                <p
+                  style={{
+                    margin: "0 0 24px",
+                    lineHeight: 1.7,
+                    color: "#64748b",
+                  }}
+                >
+                  {adminAlert.message}
+                </p>
+
+                <button
+                  type="button"
+                  className={styles.modalApprove}
+                  onClick={() =>
+                    setAdminAlert({ open: false, title: "", message: "" })
+                  }
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
+                  <FiCheck />
+                  Okay, understood
+                </button>
               </div>
             </div>
           )}

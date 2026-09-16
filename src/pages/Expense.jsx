@@ -82,6 +82,20 @@ const EXPENSE_TYPES = [
 ];
 
 /* ============================================================
+   PAYMENT METHODS
+============================================================ */
+
+const PAYMENT_METHODS = [
+  "Cash",
+  "Debit Card",
+  "Credit Card",
+  "Check",
+  "Zelle",
+  "Online",
+  "ACH",
+];
+
+/* ============================================================
    STATUS OPTIONS
 ============================================================ */
 
@@ -216,6 +230,19 @@ const getExpenseType = (expense) => {
 };
 
 /* ============================================================
+   PAYMENT METHOD
+============================================================ */
+
+const getPaymentMethod = (expense) => {
+  return (
+    expense?.paymentMethod ||
+    expense?.payment_method ||
+    expense?.method ||
+    "Not specified"
+  );
+};
+
+/* ============================================================
    DESCRIPTION
 ============================================================ */
 
@@ -292,21 +319,6 @@ const getRequestedBy = (expense) => {
 /* ============================================================
    JWT HELPER
 ============================================================ */
-
-/*
-  We do NOT change Login.jsx.
-
-  Login.jsx already stores the JWT token here:
-
-    adminToken
-
-  If adminName is missing or was stored as "Administrator",
-  this helper checks the token for the administrator's actual
-  name/fullName/username/email.
-
-  This is only a fallback. The normal source remains the
-  localStorage administrator information.
-*/
 
 const getAdminInfoFromToken = () => {
   try {
@@ -393,25 +405,6 @@ const getAdminInfoFromToken = () => {
    CURRENT ADMIN INFORMATION
 ============================================================ */
 
-/*
-  Login.jsx stores:
-
-    adminToken
-    adminName
-    adminEmail
-    adminId
-    adminRole
-    adminExpiry
-
-  We first use those exact values.
-
-  If adminName is empty or equals the generic "Administrator",
-  we also check the JWT token for the real administrator name.
-
-  Login.jsx is NOT changed.
-  CreateAdmin.jsx is NOT changed.
-*/
-
 const getCurrentAdminInfo = () => {
   try {
     const adminId = localStorage.getItem("adminId");
@@ -422,10 +415,6 @@ const getCurrentAdminInfo = () => {
     const cleanAdminName = adminName?.trim() || "";
     const cleanAdminEmail = adminEmail?.trim() || "";
 
-    /*
-      First try the values saved during Login.jsx.
-    */
-
     const localStorageInfo = {
       id: adminId ? String(adminId) : null,
       name: cleanAdminName,
@@ -433,21 +422,12 @@ const getCurrentAdminInfo = () => {
       role: adminRole || "main",
     };
 
-    /*
-      If we have a real name, use it directly.
-    */
-
     if (
       localStorageInfo.name &&
       localStorageInfo.name.toLowerCase() !== "administrator"
     ) {
       return localStorageInfo;
     }
-
-    /*
-      If localStorage contains "Administrator", check the
-      authenticated JWT for the actual administrator identity.
-    */
 
     const tokenInfo = getAdminInfoFromToken();
 
@@ -463,11 +443,6 @@ const getCurrentAdminInfo = () => {
         };
       }
 
-      /*
-        Even if the token does not contain a usable name,
-        preserve useful ID/email information.
-      */
-
       if (localStorageInfo.id || localStorageInfo.email) {
         return {
           id: localStorageInfo.id || tokenInfo.id || null,
@@ -477,14 +452,6 @@ const getCurrentAdminInfo = () => {
         };
       }
     }
-
-    /*
-      If localStorage has a name but it is "Administrator",
-      return it as the final fallback.
-
-      This only happens when neither localStorage nor the
-      JWT contains the actual administrator name.
-    */
 
     if (adminId || adminName || adminEmail) {
       return {
@@ -509,18 +476,6 @@ const getCurrentAdminInfo = () => {
 /* ============================================================
    REQUESTED BY PAYLOAD
 ============================================================ */
-
-/*
-  This creates the requestedBy object sent to the backend.
-
-  Example:
-
-  requestedBy: {
-    id: "68xxxxxxxxxxxx",
-    name: "Actual Admin Name",
-    email: "admin@example.com"
-  }
-*/
 
 const getRequestedByPayload = () => {
   const adminInfo = getCurrentAdminInfo();
@@ -589,10 +544,16 @@ export default function Expense() {
   const [showExpenseModal, setShowExpenseModal] = useState(false);
 
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [adminAlert, setAdminAlert] = useState({
+    open: false,
+    title: "",
+    message: "",
+  });
 
   const [form, setForm] = useState({
     expenseType: "",
     amount: "",
+    paymentMethod: "",
     description: "",
     expenseDate: new Date().toISOString().slice(0, 10),
   });
@@ -694,10 +655,6 @@ export default function Expense() {
   ============================================================ */
 
   const financialSummary = useMemo(() => {
-    /* ----------------------------------------------------------
-       APPROVED DONATIONS
-    ---------------------------------------------------------- */
-
     const approvedDonations = donations.filter(
       (donation) => normalizeStatus(donation?.status) === "Approved",
     );
@@ -707,10 +664,6 @@ export default function Expense() {
       0,
     );
 
-    /* ----------------------------------------------------------
-       APPROVED MONTHLY PAYMENTS
-    ---------------------------------------------------------- */
-
     const approvedMonthlyPayments = monthlyPayments.filter(
       (payment) => normalizeStatus(payment?.status) === "Approved",
     );
@@ -719,10 +672,6 @@ export default function Expense() {
       (sum, payment) => sum + getMonthlyPaymentAmount(payment),
       0,
     );
-
-    /* ----------------------------------------------------------
-       EXPENSE STATUS
-    ---------------------------------------------------------- */
 
     const approvedExpenses = expenses.filter(
       (expense) => normalizeStatus(expense?.status) === "Approved",
@@ -735,10 +684,6 @@ export default function Expense() {
     const rejectedExpenses = expenses.filter(
       (expense) => normalizeStatus(expense?.status) === "Rejected",
     );
-
-    /* ----------------------------------------------------------
-       EXPENSE TOTALS
-    ---------------------------------------------------------- */
 
     const approvedExpenseTotal = approvedExpenses.reduce(
       (sum, expense) => sum + getExpenseAmount(expense),
@@ -755,15 +700,7 @@ export default function Expense() {
       0,
     );
 
-    /* ----------------------------------------------------------
-       TOTAL CHURCH MONEY
-    ---------------------------------------------------------- */
-
     const totalChurchIncome = donationTotal + monthlyTotal;
-
-    /* ----------------------------------------------------------
-       AVAILABLE BALANCE
-    ---------------------------------------------------------- */
 
     const availableBalance = totalChurchIncome - approvedExpenseTotal;
 
@@ -804,6 +741,7 @@ export default function Expense() {
 
       const searchable = [
         type,
+        getPaymentMethod(expense),
         getExpenseDescription(expense),
         getRequestedBy(expense),
         getRejectionReason(expense),
@@ -831,6 +769,7 @@ export default function Expense() {
     setForm({
       expenseType: "",
       amount: "",
+      paymentMethod: "",
       description: "",
       expenseDate: new Date().toISOString().slice(0, 10),
     });
@@ -881,6 +820,11 @@ export default function Expense() {
       return;
     }
 
+    if (!form.paymentMethod) {
+      showError("Please select a payment method.");
+      return;
+    }
+
     if (!Number.isFinite(amount) || amount <= 0) {
       showError("Please enter a valid expense amount.");
       return;
@@ -900,28 +844,6 @@ export default function Expense() {
 
       setError("");
 
-      /* ==========================================================
-         REQUESTED BY
-
-         Get the actual currently logged-in administrator.
-
-         Login.jsx stores:
-
-           adminId
-           adminName
-           adminEmail
-           adminRole
-           adminToken
-
-         The request sent to the backend is:
-
-         requestedBy: {
-           id,
-           name,
-           email
-         }
-      ========================================================== */
-
       const requestedBy = getRequestedByPayload();
 
       console.log("CURRENT ADMIN INFORMATION:", getCurrentAdminInfo());
@@ -932,6 +854,8 @@ export default function Expense() {
         expenseType: form.expenseType,
 
         amount,
+
+        paymentMethod: form.paymentMethod,
 
         description: form.description.trim(),
 
@@ -962,6 +886,7 @@ export default function Expense() {
       setForm({
         expenseType: "",
         amount: "",
+        paymentMethod: "",
         description: "",
         expenseDate: new Date().toISOString().slice(0, 10),
       });
@@ -979,29 +904,10 @@ export default function Expense() {
   };
 
   /* ============================================================
-     UPDATE EXPENSE STATUS
-
-     IMPORTANT:
-
-     This page is NOT allowed to approve or reject expenses.
-
-     The buttons remain available so the user can understand
-     that the action is restricted.
-
-     NO API request is sent.
+     UPDATE EXPENSE STATUS — MAIN ADMIN ONLY
   ============================================================ */
 
-  const updateExpenseStatus = async (expense, status) => {
-    if (!expense?._id) {
-      showError("This expense does not have a database ID.");
-      return;
-    }
-
-    if (!STATUS_OPTIONS.includes(status)) {
-      showError("Invalid expense status.");
-      return;
-    }
-
+  const updateExpenseStatus = (expense, status) => {
     const action =
       status === "Approved"
         ? "approve"
@@ -1009,30 +915,24 @@ export default function Expense() {
           ? "reject"
           : "change the status of";
 
-    showError(
-      `Action restricted — only the Main Administration Admin can ${action} expense requests. You cannot ${action} this request from this page. Please wait for the Main Administration Admin to review the request.`,
-    );
+    setAdminAlert({
+      open: true,
+      title: "Main Administration Admin required",
+      message: `You have to contact the Main Administration Admin to ${action} expense requests. This action is restricted on your account.`,
+    });
   };
 
   /* ============================================================
-     DELETE EXPENSE
-
-     IMPORTANT:
-
-     This page is NOT allowed to delete expenses.
-
-     NO DELETE API request is sent.
+     DELETE EXPENSE — MAIN ADMIN ONLY
   ============================================================ */
 
-  const deleteExpense = async (expense) => {
-    if (!expense?._id) {
-      showError("This expense does not have a database ID.");
-      return;
-    }
-
-    showError(
-      "Action restricted — only the Main Administration Admin can delete expense requests. You cannot delete this request from this page. Please wait for the Main Administration Admin to review it.",
-    );
+  const deleteExpense = (expense) => {
+    setAdminAlert({
+      open: true,
+      title: "Delete action restricted",
+      message:
+        "You have to contact the Main Administration Admin to delete expense requests. Expense records cannot be deleted from your account.",
+    });
   };
 
   /* ============================================================
@@ -1059,6 +959,7 @@ export default function Expense() {
 
   const getReportAdminName = () => {
     const adminInfo = getCurrentAdminInfo();
+
     return adminInfo?.name?.trim() || "Administrator";
   };
 
@@ -1073,14 +974,24 @@ export default function Expense() {
   const getReportRows = (records) =>
     records.map((expense, index) => ({
       "No.": index + 1,
+
       "Expense ID": getReportId(expense),
+
       "Expense Type": getExpenseType(expense),
+
+      "Payment Method": getPaymentMethod(expense),
+
       "Amount (USD)": Number(getExpenseAmount(expense).toFixed(2)),
+
       "Description / Reason":
         getExpenseDescription(expense) || "No description provided.",
+
       "Requested By": getRequestedBy(expense),
+
       "Expense Date": formatDate(getExpenseDate(expense)),
+
       Status: normalizeStatus(expense?.status),
+
       "Rejection Reason": getRejectionReason(expense) || "",
     }));
 
@@ -1088,9 +999,11 @@ export default function Expense() {
     const approved = records.filter(
       (expense) => normalizeStatus(expense?.status) === "Approved",
     );
+
     const pending = records.filter(
       (expense) => normalizeStatus(expense?.status) === "Pending",
     );
+
     const rejected = records.filter(
       (expense) => normalizeStatus(expense?.status) === "Rejected",
     );
@@ -1100,26 +1013,36 @@ export default function Expense() {
         (sum, expense) => sum + getExpenseAmount(expense),
         0,
       ),
+
       approved: approved.reduce(
         (sum, expense) => sum + getExpenseAmount(expense),
         0,
       ),
+
       pending: pending.reduce(
         (sum, expense) => sum + getExpenseAmount(expense),
         0,
       ),
+
       rejected: rejected.reduce(
         (sum, expense) => sum + getExpenseAmount(expense),
         0,
       ),
+
       approvedCount: approved.length,
+
       pendingCount: pending.length,
+
       rejectedCount: rejected.length,
     };
   };
 
   const buildReportTitle = (isIndividual = false) =>
     isIndividual ? "Church Expense Report" : "Church Expense Financial Report";
+
+  /* ============================================================
+     EXCEL EXPORT
+  ============================================================ */
 
   const exportExpenseToExcel = (records, isIndividual = false) => {
     if (!Array.isArray(records) || records.length === 0) {
@@ -1129,30 +1052,49 @@ export default function Expense() {
 
     try {
       const adminName = getReportAdminName();
+
       const reportDate = formatDateTime(new Date());
+
       const rows = getReportRows(records);
+
       const totals = getReportTotals(records);
 
       const reportHeader = [
         ["ST. MARY & ST. GABRIEL ETHIOPIAN ORTHODOX TEWAHEDO CHURCH"],
+
         [buildReportTitle(isIndividual)],
+
         ["Report Prepared By", adminName],
+
         ["Report Date", reportDate],
+
         ["Records Included", records.length],
+
         [],
+
         ["FINANCIAL SUMMARY"],
+
         ["Total Expense Amount", totals.total],
+
         ["Approved Expenses", totals.approved],
+
         ["Pending Expenses", totals.pending],
+
         ["Rejected Expenses", totals.rejected],
+
         ["Approved Records", totals.approvedCount],
+
         ["Pending Records", totals.pendingCount],
+
         ["Rejected Records", totals.rejectedCount],
+
         [],
+
         ["EXPENSE DETAILS"],
       ];
 
       const worksheet = XLSX.utils.aoa_to_sheet(reportHeader);
+
       XLSX.utils.sheet_add_json(worksheet, rows, {
         origin: `A${reportHeader.length + 1}`,
         skipHeader: false,
@@ -1162,6 +1104,7 @@ export default function Expense() {
         { wch: 7 },
         { wch: 26 },
         { wch: 34 },
+        { wch: 20 },
         { wch: 16 },
         { wch: 48 },
         { wch: 28 },
@@ -1171,20 +1114,30 @@ export default function Expense() {
       ];
 
       const lastRow = reportHeader.length + rows.length;
+
       const titleRows = [1, 2, 7, reportHeader.length + 1];
 
       titleRows.forEach((rowNumber) => {
         const cell = worksheet[`A${rowNumber}`];
+
         if (cell) {
           cell.s = {
-            font: { bold: true, sz: rowNumber === 1 ? 16 : 12 },
-            alignment: { horizontal: "center", vertical: "center" },
+            font: {
+              bold: true,
+              sz: rowNumber === 1 ? 16 : 12,
+            },
+
+            alignment: {
+              horizontal: "center",
+              vertical: "center",
+            },
           };
         }
       });
 
       for (let row = reportHeader.length + 2; row <= lastRow; row += 1) {
-        const amountCell = worksheet[`D${row}`];
+        const amountCell = worksheet[`E${row}`];
+
         if (amountCell) {
           amountCell.z = "$#,##0.00";
         }
@@ -1197,6 +1150,7 @@ export default function Expense() {
       });
 
       const workbook = XLSX.utils.book_new();
+
       XLSX.utils.book_append_sheet(
         workbook,
         worksheet,
@@ -1204,11 +1158,13 @@ export default function Expense() {
       );
 
       const safeDate = new Date().toISOString().slice(0, 10);
+
       const filename = isIndividual
         ? `Expense_Report_${safeDate}.xlsx`
         : `Church_Expense_Report_${safeDate}.xlsx`;
 
       XLSX.writeFile(workbook, filename);
+
       showSuccess(
         isIndividual
           ? "Individual expense report exported successfully."
@@ -1216,9 +1172,14 @@ export default function Expense() {
       );
     } catch (err) {
       console.error("EXPENSE EXCEL EXPORT ERROR:", err);
+
       showError("Unable to export the expense report to Excel.");
     }
   };
+
+  /* ============================================================
+     PRINT EXPENSE REPORT
+  ============================================================ */
 
   const printExpenseReport = (records, isIndividual = false) => {
     if (!Array.isArray(records) || records.length === 0) {
@@ -1227,8 +1188,11 @@ export default function Expense() {
     }
 
     const adminName = getReportAdminName();
+
     const reportDate = formatDateTime(new Date());
+
     const totals = getReportTotals(records);
+
     const title = buildReportTitle(isIndividual);
 
     const escapeHtml = (value) =>
@@ -1244,20 +1208,30 @@ export default function Expense() {
         (expense, index) => `
           <tr>
             <td>${index + 1}</td>
+
             <td>${escapeHtml(getExpenseType(expense))}</td>
+
+            <td>${escapeHtml(getPaymentMethod(expense))}</td>
+
             <td class="amount">${escapeHtml(
               formatCurrency(getExpenseAmount(expense)),
             )}</td>
+
             <td>${escapeHtml(
               getExpenseDescription(expense) || "No description provided.",
             )}</td>
+
             <td>${escapeHtml(getRequestedBy(expense))}</td>
+
             <td>${escapeHtml(formatDate(getExpenseDate(expense)))}</td>
-            <td><span class="status ${normalizeStatus(
-              expense?.status,
-            ).toLowerCase()}">${escapeHtml(
-              normalizeStatus(expense?.status),
-            )}</span></td>
+
+            <td>
+              <span class="status ${normalizeStatus(
+                expense?.status,
+              ).toLowerCase()}">
+                ${escapeHtml(normalizeStatus(expense?.status))}
+              </span>
+            </td>
           </tr>
         `,
       )
@@ -1272,12 +1246,18 @@ export default function Expense() {
 
     printWindow.document.write(`
       <!doctype html>
+
       <html>
         <head>
           <title>${escapeHtml(title)}</title>
+
           <meta charset="UTF-8" />
+
           <style>
-            * { box-sizing: border-box; }
+            * {
+              box-sizing: border-box;
+            }
+
             body {
               margin: 0;
               padding: 32px;
@@ -1285,15 +1265,18 @@ export default function Expense() {
               color: #172033;
               background: #fff;
             }
+
             .report {
               max-width: 1100px;
               margin: 0 auto;
             }
+
             .header {
               border-bottom: 3px solid #172033;
               padding-bottom: 20px;
               margin-bottom: 24px;
             }
+
             .eyebrow {
               font-size: 11px;
               font-weight: 700;
@@ -1302,28 +1285,33 @@ export default function Expense() {
               color: #7b8494;
               margin-bottom: 8px;
             }
+
             h1 {
               margin: 0;
               font-size: 28px;
               color: #111827;
             }
+
             .subtitle {
               margin: 8px 0 0;
               color: #667085;
               font-size: 13px;
             }
+
             .meta {
               display: grid;
               grid-template-columns: repeat(2, 1fr);
               gap: 12px;
               margin-bottom: 22px;
             }
+
             .meta-card {
               border: 1px solid #e4e7ec;
               border-radius: 10px;
               padding: 12px 14px;
               background: #f8fafc;
             }
+
             .label {
               display: block;
               font-size: 10px;
@@ -1333,53 +1321,63 @@ export default function Expense() {
               margin-bottom: 4px;
               font-weight: 700;
             }
+
             .value {
               font-size: 14px;
               font-weight: 700;
               color: #111827;
             }
+
             .summary {
               display: grid;
               grid-template-columns: repeat(4, 1fr);
               gap: 12px;
               margin-bottom: 26px;
             }
+
             .summary-card {
               border: 1px solid #e4e7ec;
               border-radius: 10px;
               padding: 14px;
             }
+
             .summary-card strong {
               display: block;
               margin-top: 5px;
               font-size: 18px;
             }
+
             table {
               width: 100%;
               border-collapse: collapse;
-              font-size: 11px;
+              font-size: 10px;
             }
+
             th {
               background: #172033;
               color: #fff;
               text-align: left;
               padding: 10px 8px;
-              font-size: 10px;
+              font-size: 9px;
               text-transform: uppercase;
               letter-spacing: .5px;
             }
+
             td {
               border-bottom: 1px solid #e4e7ec;
               padding: 9px 8px;
               vertical-align: top;
             }
+
             tbody tr:nth-child(even) {
               background: #f8fafc;
             }
+
             .amount {
               font-weight: 700;
               white-space: nowrap;
             }
+
             .status {
               display: inline-block;
               border-radius: 999px;
@@ -1387,9 +1385,22 @@ export default function Expense() {
               font-weight: 700;
               font-size: 9px;
             }
-            .approved { background: #dcfce7; color: #166534; }
-            .pending { background: #fef3c7; color: #92400e; }
-            .rejected { background: #fee2e2; color: #991b1b; }
+
+            .approved {
+              background: #dcfce7;
+              color: #166534;
+            }
+
+            .pending {
+              background: #fef3c7;
+              color: #92400e;
+            }
+
+            .rejected {
+              background: #fee2e2;
+              color: #991b1b;
+            }
+
             .footer {
               margin-top: 28px;
               padding-top: 14px;
@@ -1400,70 +1411,140 @@ export default function Expense() {
               color: #667085;
               font-size: 10px;
             }
+
             @page {
               size: landscape;
               margin: 12mm;
             }
+
             @media print {
-              body { padding: 0; }
-              .report { max-width: none; }
-              .no-print { display: none !important; }
+              body {
+                padding: 0;
+              }
+
+              .report {
+                max-width: none;
+              }
+
+              .no-print {
+                display: none !important;
+              }
             }
           </style>
         </head>
+
         <body>
           <main class="report">
+
             <header class="header">
-              <div class="eyebrow">Church Financial Management</div>
-              <h1>${escapeHtml(title)}</h1>
+              <div class="eyebrow">
+                Church Financial Management
+              </div>
+
+              <h1>
+                ${escapeHtml(title)}
+              </h1>
+
               <p class="subtitle">
                 Professional financial record prepared for church administration.
               </p>
             </header>
 
             <section class="meta">
+
               <div class="meta-card">
-                <span class="label">Requested / Reported By</span>
-                <span class="value">${escapeHtml(adminName)}</span>
+                <span class="label">
+                  Requested / Reported By
+                </span>
+
+                <span class="value">
+                  ${escapeHtml(adminName)}
+                </span>
               </div>
+
               <div class="meta-card">
-                <span class="label">Report Generated</span>
-                <span class="value">${escapeHtml(reportDate)}</span>
+                <span class="label">
+                  Report Generated
+                </span>
+
+                <span class="value">
+                  ${escapeHtml(reportDate)}
+                </span>
               </div>
+
               <div class="meta-card">
-                <span class="label">Records Included</span>
-                <span class="value">${records.length}</span>
+                <span class="label">
+                  Records Included
+                </span>
+
+                <span class="value">
+                  ${records.length}
+                </span>
               </div>
+
               <div class="meta-card">
-                <span class="label">Currency</span>
-                <span class="value">USD</span>
+                <span class="label">
+                  Currency
+                </span>
+
+                <span class="value">
+                  USD
+                </span>
               </div>
+
             </section>
 
             <section class="summary">
+
               <div class="summary-card">
-                <span class="label">Total Expenses</span>
-                <strong>${escapeHtml(formatCurrency(totals.total))}</strong>
+                <span class="label">
+                  Total Expenses
+                </span>
+
+                <strong>
+                  ${escapeHtml(formatCurrency(totals.total))}
+                </strong>
               </div>
+
               <div class="summary-card">
-                <span class="label">Approved</span>
-                <strong>${escapeHtml(formatCurrency(totals.approved))}</strong>
+                <span class="label">
+                  Approved
+                </span>
+
+                <strong>
+                  ${escapeHtml(formatCurrency(totals.approved))}
+                </strong>
               </div>
+
               <div class="summary-card">
-                <span class="label">Pending</span>
-                <strong>${escapeHtml(formatCurrency(totals.pending))}</strong>
+                <span class="label">
+                  Pending
+                </span>
+
+                <strong>
+                  ${escapeHtml(formatCurrency(totals.pending))}
+                </strong>
               </div>
+
               <div class="summary-card">
-                <span class="label">Rejected</span>
-                <strong>${escapeHtml(formatCurrency(totals.rejected))}</strong>
+                <span class="label">
+                  Rejected
+                </span>
+
+                <strong>
+                  ${escapeHtml(formatCurrency(totals.rejected))}
+                </strong>
               </div>
+
             </section>
 
             <table>
+
               <thead>
                 <tr>
                   <th>No.</th>
                   <th>Expense Type</th>
+                  <th>Payment Method</th>
                   <th>Amount</th>
                   <th>Description / Reason</th>
                   <th>Requested By</th>
@@ -1471,25 +1552,42 @@ export default function Expense() {
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody>${rowsHtml}</tbody>
+
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+
             </table>
 
             <footer class="footer">
-              <span>Prepared by: ${escapeHtml(adminName)}</span>
-              <span>Official Church Financial Record</span>
-              <span>${escapeHtml(reportDate)}</span>
+              <span>
+                Prepared by: ${escapeHtml(adminName)}
+              </span>
+
+              <span>
+                Official Church Financial Record
+              </span>
+
+              <span>
+                ${escapeHtml(reportDate)}
+              </span>
             </footer>
+
           </main>
         </body>
       </html>
     `);
 
     printWindow.document.close();
+
     printWindow.focus();
 
     window.setTimeout(() => {
       printWindow.print();
-      printWindow.onafterprint = () => printWindow.close();
+
+      printWindow.onafterprint = () => {
+        printWindow.close();
+      };
     }, 300);
   };
 
@@ -1786,9 +1884,7 @@ export default function Expense() {
             </button>
           </div>
 
-          {/* ====================================================
-              PERMISSION NOTICE
-          ==================================================== */}
+          {/* PERMISSION NOTICE */}
 
           <div className={styles.requestNotice}>
             <FiAlertCircle />
@@ -1813,7 +1909,7 @@ export default function Expense() {
 
               <input
                 type="text"
-                placeholder="Search expense type, description..."
+                placeholder="Search expense type, description, payment method..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
               />
@@ -1893,6 +1989,8 @@ export default function Expense() {
 
                     <th>Amount</th>
 
+                    <th>Payment Method</th>
+
                     <th>Description</th>
 
                     <th>Requested By</th>
@@ -1932,6 +2030,20 @@ export default function Expense() {
                           <strong className={styles.amountCell}>
                             {formatCurrency(getExpenseAmount(expense))}
                           </strong>
+                        </td>
+
+                        <td>
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              fontWeight: 600,
+                            }}
+                          >
+                            <FiCreditCard />
+                            {getPaymentMethod(expense)}
+                          </span>
                         </td>
 
                         <td>
@@ -2058,9 +2170,7 @@ export default function Expense() {
             )}
           </div>
 
-          {/* ====================================================
-              MOBILE LIST
-          ==================================================== */}
+          {/* MOBILE LIST */}
 
           {!loading && filteredExpenses.length > 0 && (
             <div className={styles.mobileList}>
@@ -2097,6 +2207,12 @@ export default function Expense() {
                     </div>
 
                     <div className={styles.mobileDetails}>
+                      <div>
+                        <span>Payment Method</span>
+
+                        <strong>{getPaymentMethod(expense)}</strong>
+                      </div>
+
                       <div>
                         <span>Description</span>
 
@@ -2242,6 +2358,33 @@ export default function Expense() {
                       {EXPENSE_TYPES.map((type) => (
                         <option key={type} value={type}>
                           {type}
+                        </option>
+                      ))}
+                    </select>
+
+                    <FiChevronDown />
+                  </div>
+                </div>
+
+                {/* PAYMENT METHOD */}
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="paymentMethod">Payment Method</label>
+
+                  <div className={styles.formSelect}>
+                    <select
+                      id="paymentMethod"
+                      value={form.paymentMethod}
+                      onChange={(event) =>
+                        updateForm("paymentMethod", event.target.value)
+                      }
+                      required
+                    >
+                      <option value="">Select payment method</option>
+
+                      {PAYMENT_METHODS.map((method) => (
+                        <option key={method} value={method}>
+                          {method}
                         </option>
                       ))}
                     </select>
@@ -2413,6 +2556,12 @@ export default function Expense() {
                 </div>
 
                 <div>
+                  <span>Payment Method</span>
+
+                  <strong>{getPaymentMethod(selectedExpense)}</strong>
+                </div>
+
+                <div>
                   <span>Status</span>
 
                   <strong>
@@ -2448,9 +2597,7 @@ export default function Expense() {
                 </p>
               </div>
 
-              {/* ==================================================
-                  REJECTION REASON
-              ================================================== */}
+              {/* REJECTION REASON */}
 
               {normalizeStatus(selectedExpense.status) === "Rejected" &&
                 getRejectionReason(selectedExpense) && (
@@ -2465,9 +2612,7 @@ export default function Expense() {
                   </div>
                 )}
 
-              {/* ==================================================
-                  PERMISSION NOTICE
-              ================================================== */}
+              {/* PERMISSION NOTICE */}
 
               <div className={styles.requestNotice}>
                 <FiAlertCircle />
@@ -2550,6 +2695,64 @@ export default function Expense() {
           </div>
         )}
       </div>
+
+      {adminAlert.open && (
+        <div
+          className={styles.modalOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setAdminAlert({ open: false, title: "", message: "" });
+            }
+          }}
+        >
+          <div
+            className={styles.modal}
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="expense-admin-alert-title"
+            style={{ maxWidth: "460px", textAlign: "center" }}
+          >
+            <div
+              style={{
+                width: "64px",
+                height: "64px",
+                margin: "0 auto 18px",
+                borderRadius: "50%",
+                display: "grid",
+                placeItems: "center",
+                background: "linear-gradient(135deg, #fff1f2, #ffe4e6)",
+                color: "#be123c",
+                fontSize: "30px",
+                fontWeight: 800,
+              }}
+            >
+              <FiAlertCircle />
+            </div>
+
+            <h2 id="expense-admin-alert-title" style={{ margin: "0 0 10px" }}>
+              {adminAlert.title}
+            </h2>
+            <p
+              style={{ margin: "0 0 24px", lineHeight: 1.7, color: "#64748b" }}
+            >
+              {adminAlert.message}
+            </p>
+
+            <button
+              type="button"
+              className={styles.modalApprove}
+              onClick={() =>
+                setAdminAlert({ open: false, title: "", message: "" })
+              }
+              style={{ width: "100%", justifyContent: "center" }}
+            >
+              <FiCheck />
+              Okay, understood
+            </button>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }

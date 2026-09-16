@@ -28,10 +28,15 @@ import styles from "../styles/addDonate.module.css";
 // CONSTANTS
 // ============================================================
 //
-// Admin manually enters CASH donations only.
+// Admin manually enters donations.
 //
 // Public online donations are handled by the Square payment
 // flow and are NOT created manually from this page.
+//
+// Admin can manually record:
+// 1. Cash
+// 2. Zelle
+// 3. Check/Money Order
 //
 // ============================================================
 
@@ -39,6 +44,14 @@ const PAYMENT_OPTIONS = [
   {
     value: "cash",
     label: "Cash",
+  },
+  {
+    value: "zelle",
+    label: "Zelle",
+  },
+  {
+    value: "check_money_order",
+    label: "Check/Money Order",
   },
 ];
 
@@ -71,74 +84,92 @@ const REVENUE_TYPE_OPTIONS = [
     value: "Membership",
     label: "Membership",
   },
+
   {
     value: "Sunday Collection",
     label: "Sunday Collection",
   },
+
   {
     value: "Collection Box",
     label: "Collection Box",
   },
+
   {
     value: "Offering/Gift",
     label: "Offering/Gift",
   },
+
   {
     value: "Newaye Kidisat Shop",
     label: "Newaye Kidisat Shop",
   },
+
   {
     value: "Back 40 Fundraising",
     label: "Back 40 Fundraising",
   },
+
   {
     value: "Mortgage Payoff Fundraising",
     label: "Mortgage Payoff Fundraising",
   },
+
   {
     value: "Parking Fundraising",
     label: "Parking Fundraising",
   },
+
   {
     value: "Reach outs Fundraising",
     label: "Reach outs Fundraising",
   },
+
   {
     value: "Youth Fundraising",
     label: "Youth Fundraising",
   },
+
   {
     value: "St. Gabriel & St. Mary Holiday Fundraising",
     label: "St. Gabriel & St. Mary Holiday Fundraising",
   },
+
   {
     value: "Kids & youth School Fundraising",
     label: "Kids & youth School Fundraising",
   },
+
   {
     value: "International Festival",
     label: "International Festival",
   },
+
   {
     value: "Travel reimbursement (Bus)",
     label: "Travel reimbursement (Bus)",
   },
+
   {
     value: "Other Reimbursement",
     label: "Other Reimbursement",
   },
+
   {
     value: "Investment Income",
     label: "Investment Income",
   },
+
   {
     value: "Other Income",
     label: "Other Income",
   },
+
   {
     value: "Church Purchase Fundraising",
     label: "Church Purchase Fundraising",
   },
+
   {
     value: "Raffle Ticket",
     label: "Raffle Ticket",
@@ -361,10 +392,10 @@ export default function AddDonate() {
 
     if (!formData.paymentMethod) {
       newErrors.paymentMethod = "Payment method is required.";
-    }
-
-    if (formData.paymentMethod !== "cash") {
-      newErrors.paymentMethod = "Admin donations must use Cash.";
+    } else if (
+      !PAYMENT_OPTIONS.some((option) => option.value === formData.paymentMethod)
+    ) {
+      newErrors.paymentMethod = "Please select a valid payment method.";
     }
 
     // --------------------------------------------------------
@@ -373,6 +404,10 @@ export default function AddDonate() {
 
     if (!formData.status) {
       newErrors.status = "Please select a donation status.";
+    } else if (
+      !STATUS_OPTIONS.some((option) => option.value === formData.status)
+    ) {
+      newErrors.status = "Please select a valid donation status.";
     }
 
     // --------------------------------------------------------
@@ -440,12 +475,17 @@ export default function AddDonate() {
       const adminName = getCurrentAdminName();
 
       // ------------------------------------------------------
-      // ADMIN CASH DONATION PAYLOAD
+      // ADMIN MANUAL DONATION PAYLOAD
       // ------------------------------------------------------
       //
       // This page NEVER sends a Square payment.
       //
-      // It only creates a manually entered cash donation.
+      // It creates a manually entered donation using the
+      // payment method selected by the administrator:
+      //
+      // cash
+      // zelle
+      // check_money_order
       //
       // ------------------------------------------------------
 
@@ -460,7 +500,7 @@ export default function AddDonate() {
 
         revenueType: formData.revenueType,
 
-        paymentMethod: "cash",
+        paymentMethod: formData.paymentMethod,
 
         status: formData.status,
 
@@ -469,14 +509,16 @@ export default function AddDonate() {
         approvedByName: adminName,
       };
 
-      console.log("ADDING ADMIN CASH DONATION:", payload);
+      console.log("ADDING ADMIN DONATION:", payload);
 
-      console.log("CASH DONATION ENTERED BY:", adminName);
+      console.log("DONATION ENTERED BY:", adminName);
 
       console.log("DONATION REVENUE TYPE:", formData.revenueType);
 
+      console.log("DONATION PAYMENT METHOD:", formData.paymentMethod);
+
       // ------------------------------------------------------
-      // ADMIN CASH DONATION API
+      // ADMIN DONATION API
       // ------------------------------------------------------
       //
       // POST /api/donations/admin
@@ -487,20 +529,18 @@ export default function AddDonate() {
 
       const response = await api.post("/donations/admin", payload);
 
-      console.log("ADD CASH DONATION RESPONSE:", response.data);
+      console.log("ADD ADMIN DONATION RESPONSE:", response.data);
 
       // ------------------------------------------------------
       // CHECK API RESPONSE
       // ------------------------------------------------------
 
       if (!response.data?.success) {
-        throw new Error(
-          response.data?.message || "Unable to add cash donation.",
-        );
+        throw new Error(response.data?.message || "Unable to add donation.");
       }
 
       const message =
-        response.data?.message || "Cash donation has been added successfully.";
+        response.data?.message || "Donation has been added successfully.";
 
       setSuccessMessage(message);
 
@@ -531,7 +571,7 @@ export default function AddDonate() {
         });
       }, 1200);
     } catch (err) {
-      console.error("ADD CASH DONATION ERROR:", err);
+      console.error("ADD DONATION ERROR:", err);
 
       // ------------------------------------------------------
       // SERVER ERROR
@@ -541,7 +581,7 @@ export default function AddDonate() {
         err.response?.data?.message || err.response?.data?.error || err.message;
 
       setErrorMessage(
-        serverMessage || "Unable to add cash donation. Please try again.",
+        serverMessage || "Unable to add donation. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -554,6 +594,18 @@ export default function AddDonate() {
 
   const handleBack = () => {
     navigate("/admin/donate");
+  };
+
+  // ==========================================================
+  // PAYMENT METHOD LABEL
+  // ==========================================================
+
+  const getPaymentMethodLabel = (paymentMethod) => {
+    const found = PAYMENT_OPTIONS.find(
+      (option) => option.value === paymentMethod,
+    );
+
+    return found?.label || "Not selected";
   };
 
   // ==========================================================
@@ -575,6 +627,7 @@ export default function AddDonate() {
               onClick={handleBack}
             >
               <FiArrowLeft />
+
               <span>Back to Donations</span>
             </button>
 
@@ -584,10 +637,10 @@ export default function AddDonate() {
                 Church Giving
               </div>
 
-              <h1>Add Cash Donation</h1>
+              <h1>Add Donation</h1>
 
               <p>
-                Manually add a cash donation to the church donation management
+                Manually add a donation to the church donation management
                 system.
               </p>
             </div>
@@ -610,6 +663,7 @@ export default function AddDonate() {
 
             <div>
               <strong>Donation Added</strong>
+
               <p>{successMessage}</p>
             </div>
 
@@ -631,6 +685,7 @@ export default function AddDonate() {
 
             <div>
               <strong>Unable to Add Donation</strong>
+
               <p>{errorMessage}</p>
             </div>
 
@@ -658,7 +713,7 @@ export default function AddDonate() {
               <div>
                 <h2>Donation Information</h2>
 
-                <p>Enter the donor and cash donation details below.</p>
+                <p>Enter the donor and donation details below.</p>
               </div>
 
               <div className={styles.cardHeaderIcon}>
@@ -799,7 +854,7 @@ export default function AddDonate() {
                   <div>
                     <h3>Payment Information</h3>
 
-                    <p>Enter the manually received cash donation details.</p>
+                    <p>Enter the manually received donation details.</p>
                   </div>
                 </div>
 
@@ -859,6 +914,7 @@ export default function AddDonate() {
                         name="paymentMethod"
                         value={formData.paymentMethod}
                         onChange={handleChange}
+                        required
                       >
                         {PAYMENT_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
@@ -875,7 +931,8 @@ export default function AddDonate() {
                     )}
 
                     <small className={styles.helperText}>
-                      Cash donations are entered manually by an administrator.
+                      Select how this donation was received: Cash, Zelle, or
+                      Check/Money Order.
                     </small>
                   </div>
 
@@ -919,7 +976,7 @@ export default function AddDonate() {
                     )}
 
                     <small className={styles.helperText}>
-                      Select the church income account for this cash donation.
+                      Select the church income account for this donation.
                     </small>
                   </div>
 
@@ -1048,7 +1105,7 @@ export default function AddDonate() {
                   ) : (
                     <>
                       <FiSave />
-                      Add Cash Donation
+                      Add Donation
                     </>
                   )}
                 </button>
@@ -1068,7 +1125,7 @@ export default function AddDonate() {
                 <div>
                   <span>Donation Preview</span>
 
-                  <h3>New Cash Donation</h3>
+                  <h3>New Donation</h3>
                 </div>
 
                 <div className={styles.previewIcon}>
@@ -1106,7 +1163,9 @@ export default function AddDonate() {
                 <div className={styles.previewItem}>
                   <span>Payment</span>
 
-                  <strong>Cash</strong>
+                  <strong>
+                    {getPaymentMethodLabel(formData.paymentMethod)}
+                  </strong>
                 </div>
 
                 {/* REVENUE TYPE */}
@@ -1148,8 +1207,8 @@ export default function AddDonate() {
                 <h3>Important</h3>
 
                 <p>
-                  This donation is being entered manually as a cash donation. No
-                  Square payment will be processed.
+                  This donation is being entered manually by an administrator.
+                  No Square payment will be processed from this page.
                 </p>
               </div>
             </section>
@@ -1162,7 +1221,7 @@ export default function AddDonate() {
               </div>
 
               <div>
-                <strong>Admin Cash Entry</strong>
+                <strong>Admin Donation Entry</strong>
 
                 <span>
                   This donation is being entered manually by an administrator.

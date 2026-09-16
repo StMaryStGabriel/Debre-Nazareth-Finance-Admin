@@ -69,7 +69,7 @@ const REJECTION_REASON_STORAGE_KEY =
 
 const STATUS_OPTIONS = ["All", "Pending", "Approved", "Rejected"];
 
-const DEFAULT_SOURCE_OPTIONS = ["Square", "Cash"];
+const DEFAULT_SOURCE_OPTIONS = ["Square", "Cash", "Zelle", "Check/Money Order"];
 
 /* ============================================================
    GENERAL HELPERS
@@ -566,7 +566,7 @@ const getPaymentMethod = (payment) =>
   );
 
 const getPaymentSource = (payment) => {
-  const method = String(getPaymentMethod(payment)).toLowerCase();
+  const method = String(getPaymentMethod(payment)).toLowerCase().trim();
 
   if (
     method.includes("square") ||
@@ -580,6 +580,18 @@ const getPaymentSource = (payment) => {
     return "Cash";
   }
 
+  if (method.includes("zelle")) {
+    return "Zelle";
+  }
+
+  if (
+    method.includes("check") ||
+    method.includes("money order") ||
+    method.includes("check_money_order")
+  ) {
+    return "Check/Money Order";
+  }
+
   const source = firstValue(
     payment?.paymentSource,
     payment?.source,
@@ -589,14 +601,22 @@ const getPaymentSource = (payment) => {
   );
 
   if (source) {
-    const normalized = String(source).toLowerCase();
+    const normalized = String(source)
+      .toLowerCase()
+      .replace(/[_-]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
-    if (normalized.includes("cash")) {
+    if (normalized.includes("cash") || normalized.includes("office")) {
       return "Cash";
     }
 
-    if (normalized.includes("office")) {
-      return "Cash";
+    if (normalized.includes("zelle")) {
+      return "Zelle";
+    }
+
+    if (normalized.includes("check") || normalized.includes("money order")) {
+      return "Check/Money Order";
     }
 
     if (normalized.includes("square") || normalized.includes("paypal")) {
@@ -607,6 +627,13 @@ const getPaymentSource = (payment) => {
   }
 
   return "Cash";
+};
+
+const getSourceIcon = (source) => {
+  if (source === "Square") return <FaGlobe />;
+  if (source === "Zelle") return <FaCreditCard />;
+  if (source === "Check/Money Order") return <FaFileInvoiceDollar />;
+  return <FaMoneyBillWave />;
 };
 
 const getApprovedByName = (payment) => firstValue(payment?.approvedByName, "—");
@@ -1188,8 +1215,12 @@ const AdminMonthlyPayment = () => {
       numberOfMonths: months,
       paidMonths,
       status: "Approved",
-      paymentMethod: "Cash",
+      // Payment source selected by the administrator.
+      // Square remains handled by the existing Square flow.
+      paymentMethod: addPaymentForm.source,
+      paymentSource: addPaymentForm.source,
       currency: "USD",
+      // Keep this existing field for backward compatibility with Cash records.
       cashPaymentDate: new Date().toISOString(),
       note: addPaymentForm.note.trim(),
     };
@@ -1208,7 +1239,11 @@ const AdminMonthlyPayment = () => {
       setPayments((previous) => [createdPayment || payload, ...previous]);
       setAddPaymentLoading(false);
       closeAddPayment();
-      showSuccess("Monthly payment recorded and marked as approved.");
+      showSuccess(
+        `${addPaymentForm.source} payment added successfully — USD ${formatCurrency(
+          monthlyAmount * months,
+        )} for ${months} month${months === 1 ? "" : "s"}.`,
+      );
     } catch (err) {
       showError(
         getApiErrorMessage(err, "Unable to record the monthly payment."),
@@ -1502,60 +1537,133 @@ const AdminMonthlyPayment = () => {
     const pending = [];
     const approved = [];
     const rejected = [];
-    const square = [];
-    const cash = [];
 
     payments.forEach((payment) => {
       const status = normalizeStatus(payment?.status);
 
-      const source = getPaymentSource(payment);
-
-      if (status === "Pending") {
-        pending.push(payment);
-      }
-
-      if (status === "Approved") {
-        approved.push(payment);
-      }
-
-      if (status === "Rejected") {
-        rejected.push(payment);
-      }
-
-      if (source === "Square") {
-        square.push(payment);
-      } else {
-        cash.push(payment);
-      }
+      if (status === "Pending") pending.push(payment);
+      if (status === "Approved") approved.push(payment);
+      if (status === "Rejected") rejected.push(payment);
     });
 
     const sum = (items) =>
       items.reduce((total, payment) => total + getPaymentAmount(payment), 0);
 
+    const sourceMap = new Map();
+    payments.forEach((payment) => {
+      const source = getPaymentSource(payment);
+      const current = sourceMap.get(source) || { count: 0, amount: 0 };
+      current.count += 1;
+      current.amount += getPaymentAmount(payment);
+      sourceMap.set(source, current);
+    });
+
+    const approvedByMap = new Map();
+    payments.forEach((payment) => {
+      const approver = getApprovedByName(payment);
+      const key = approver && approver !== "—" ? approver : "Not approved yet";
+      const current = approvedByMap.get(key) || { count: 0, amount: 0 };
+      current.count += 1;
+      current.amount += getPaymentAmount(payment);
+      approvedByMap.set(key, current);
+    });
+
+    const sourceBreakdown = Array.from(sourceMap.entries())
+      .map(([source, data]) => ({ source, ...data }))
+      .sort((a, b) => b.amount - a.amount);
+
+    const approvedByBreakdown = Array.from(approvedByMap.entries())
+      .map(([approvedBy, data]) => ({ approvedBy, ...data }))
+      .sort((a, b) => b.amount - a.amount);
+
+    const square = sourceMap.get("Square") || { count: 0, amount: 0 };
+    const cash = sourceMap.get("Cash") || { count: 0, amount: 0 };
+
     return {
       total: payments.length,
-
       pending: pending.length,
       approved: approved.length,
       rejected: rejected.length,
-
-      square: square.length,
-      cash: cash.length,
-
+      square: square.count,
+      cash: cash.count,
       totalAmount: sum(payments),
       pendingAmount: sum(pending),
       approvedAmount: sum(approved),
       rejectedAmount: sum(rejected),
-      squareAmount: sum(square),
-      cashAmount: sum(cash),
+      squareAmount: square.amount,
+      cashAmount: cash.amount,
+      sourceBreakdown,
+      approvedByBreakdown,
     };
   }, [payments]);
+
+  const filteredInsights = useMemo(() => {
+    const sourceMap = new Map();
+    const approverMap = new Map();
+    const approverSourceMap = new Map();
+
+    filteredPayments.forEach((payment) => {
+      const amount = getPaymentAmount(payment);
+      const source = getPaymentSource(payment);
+      const approver = getApprovedByName(payment);
+      const approverKey =
+        approver && approver !== "—" ? approver : "Not approved yet";
+
+      const sourceData = sourceMap.get(source) || { count: 0, amount: 0 };
+      sourceData.count += 1;
+      sourceData.amount += amount;
+      sourceMap.set(source, sourceData);
+
+      const approverData = approverMap.get(approverKey) || {
+        count: 0,
+        amount: 0,
+      };
+      approverData.count += 1;
+      approverData.amount += amount;
+      approverMap.set(approverKey, approverData);
+
+      const combinationKey = `${approverKey}|||${source}`;
+      const combinationData = approverSourceMap.get(combinationKey) || {
+        approvedBy: approverKey,
+        source,
+        count: 0,
+        amount: 0,
+      };
+      combinationData.count += 1;
+      combinationData.amount += amount;
+      approverSourceMap.set(combinationKey, combinationData);
+    });
+
+    return {
+      recordCount: filteredPayments.length,
+      totalAmount: filteredPayments.reduce(
+        (total, payment) => total + getPaymentAmount(payment),
+        0,
+      ),
+      sourceBreakdown: Array.from(sourceMap.entries())
+        .map(([source, data]) => ({ source, ...data }))
+        .sort((a, b) => b.amount - a.amount),
+      approvedByBreakdown: Array.from(approverMap.entries())
+        .map(([approvedBy, data]) => ({ approvedBy, ...data }))
+        .sort((a, b) => b.amount - a.amount),
+      approverSourceBreakdown: Array.from(approverSourceMap.values()).sort(
+        (a, b) => b.amount - a.amount,
+      ),
+    };
+  }, [filteredPayments]);
 
   /* ==========================================================
      UPDATE STATUS
   ========================================================== */
 
-  const performStatusUpdate = async (payment, newStatus, reason = "") => {
+  const performStatusUpdate = async (payment, newStatus) => {
+    if (newStatus === "Rejected") {
+      showError(
+        "Administrative access required: only the main administrative administrator can reject monthly payments.",
+      );
+      return;
+    }
+
     const databaseId = getDatabaseId(payment);
 
     if (!databaseId) {
@@ -1565,7 +1673,7 @@ const AdminMonthlyPayment = () => {
 
     const currentStatus = normalizeStatus(payment?.status);
 
-    if (currentStatus === newStatus && newStatus !== "Rejected") {
+    if (currentStatus === newStatus) {
       return;
     }
 
@@ -1573,32 +1681,9 @@ const AdminMonthlyPayment = () => {
       setUpdatingId(databaseId);
       setError("");
 
-      /*
-       * The backend requires rejectionReason when rejecting.
-       * We send it here for validation, but the frontend also
-       * saves the reason separately in localStorage.
-       */
-      const payload = {
+      const response = await api.patch(`${PAYMENT_ROUTE}/admin/${databaseId}`, {
         status: newStatus,
-      };
-
-      if (newStatus === "Rejected") {
-        const cleanReason = String(reason || "").trim();
-
-        if (!cleanReason) {
-          showError("A rejection reason is required when rejecting a payment.");
-
-          setUpdatingId("");
-          return;
-        }
-
-        payload.rejectionReason = cleanReason;
-      }
-
-      const response = await api.patch(
-        `${PAYMENT_ROUTE}/admin/${databaseId}`,
-        payload,
-      );
+      });
 
       const updatedPayment = extractUpdatedPayment(
         response,
@@ -1628,162 +1713,36 @@ const AdminMonthlyPayment = () => {
           : previous,
       );
 
-      if (newStatus === "Rejected") {
-        saveRejectionReason(payment, reason);
-      }
-
       showSuccess(
         newStatus === "Approved"
           ? "Payment approved successfully."
-          : newStatus === "Rejected"
-            ? "Payment rejected successfully."
-            : "Payment moved back to pending.",
+          : "Payment moved back to pending.",
       );
     } catch (err) {
       console.error("UPDATE MONTHLY PAYMENT STATUS ERROR:", err);
-
       showError(getApiErrorMessage(err, "Unable to update payment status."));
     } finally {
       setUpdatingId("");
     }
   };
-
   /* ==========================================================
      REJECTION MODAL
   ========================================================== */
 
-  const openRejectConfirmation = (payment) => {
-    const databaseId = getDatabaseId(payment);
-
-    setRejectionTarget(payment);
-
-    setRejectionReason(databaseId ? rejectionReasons[databaseId] || "" : "");
+  const openRejectConfirmation = () => {
+    showError(
+      "Restricted action: only the main administrative administrator can reject monthly payments.",
+    );
   };
-
-  const closeRejectConfirmation = () => {
-    if (updatingId) {
-      return;
-    }
-
-    setRejectionTarget(null);
-    setRejectionReason("");
-  };
-
-  const submitRejection = async () => {
-    if (!rejectionTarget) {
-      return;
-    }
-
-    const cleanReason = rejectionReason.trim();
-
-    if (!cleanReason) {
-      showError("Please enter a rejection reason.");
-      return;
-    }
-
-    await performStatusUpdate(rejectionTarget, "Rejected", cleanReason);
-
-    if (!updatingId) {
-      setRejectionTarget(null);
-      setRejectionReason("");
-    }
-  };
-
   /* ==========================================================
      DELETE
   ========================================================== */
 
-  const confirmDelete = (payment) => {
-    setDeleteTarget(payment);
-    setDeleteConfirmation("");
+  const confirmDelete = () => {
+    showError(
+      "Restricted action: only the main administrative administrator can delete monthly payment records.",
+    );
   };
-
-  const closeDeleteConfirmation = () => {
-    if (deletingId) {
-      return;
-    }
-
-    setDeleteTarget(null);
-    setDeleteConfirmation("");
-  };
-
-  const deletePayment = async () => {
-    if (!deleteTarget) {
-      return;
-    }
-
-    /*
-     * Extra protection:
-     * user must type DELETE exactly.
-     */
-    if (deleteConfirmation.trim() !== "DELETE") {
-      showError('Please type "DELETE" to confirm permanent deletion.');
-      return;
-    }
-
-    const databaseId = getDatabaseId(deleteTarget);
-
-    if (!databaseId) {
-      showError("This payment does not have a valid database ID.");
-
-      closeDeleteConfirmation();
-      return;
-    }
-
-    try {
-      setDeletingId(databaseId);
-      setError("");
-
-      await api.delete(`${PAYMENT_ROUTE}/admin/${databaseId}`);
-
-      setPayments((previous) =>
-        previous.filter((item) => getDatabaseId(item) !== databaseId),
-      );
-
-      setCurrentPage((previousPage) => {
-        const remainingItems = filteredPayments.length - 1;
-
-        const remainingPages = Math.max(
-          1,
-          Math.ceil(remainingItems / pageSize),
-        );
-
-        return Math.min(previousPage, remainingPages);
-      });
-
-      setSelectedPayment((previous) =>
-        previous && getDatabaseId(previous) === databaseId ? null : previous,
-      );
-
-      /*
-       * Also remove the frontend-only rejection reason
-       * when the payment itself is deleted.
-       */
-      setRejectionReasons((previous) => {
-        const next = {
-          ...previous,
-        };
-
-        delete next[databaseId];
-
-        saveStoredRejectionReasons(next);
-
-        return next;
-      });
-
-      setDeleteTarget(null);
-      setDeleteConfirmation("");
-
-      showSuccess("Payment record deleted successfully.");
-    } catch (err) {
-      console.error("DELETE MONTHLY PAYMENT ERROR:", err);
-
-      showError(getApiErrorMessage(err, "Unable to delete monthly payment."));
-    } finally {
-      setDeletingId("");
-    }
-  };
-
   /* ==========================================================
      COPY
   ========================================================== */
@@ -1921,12 +1880,38 @@ const AdminMonthlyPayment = () => {
         { Metric: "Rejected Records", Value: stats.rejected },
         { Metric: "Square Payments", Value: stats.square },
         { Metric: "Cash Payments", Value: stats.cash },
+        {
+          Metric: "Zelle Payments",
+          Value:
+            stats.sourceBreakdown.find((item) => item.source === "Zelle")
+              ?.count || 0,
+        },
+        {
+          Metric: "Check/Money Order Payments",
+          Value:
+            stats.sourceBreakdown.find(
+              (item) => item.source === "Check/Money Order",
+            )?.count || 0,
+        },
         { Metric: "Total Amount (USD)", Value: stats.totalAmount },
         { Metric: "Approved Amount (USD)", Value: stats.approvedAmount },
         { Metric: "Pending Amount (USD)", Value: stats.pendingAmount },
         { Metric: "Rejected Amount (USD)", Value: stats.rejectedAmount },
         { Metric: "Square Amount (USD)", Value: stats.squareAmount },
         { Metric: "Cash Amount (USD)", Value: stats.cashAmount },
+        {
+          Metric: "Zelle Amount (USD)",
+          Value:
+            stats.sourceBreakdown.find((item) => item.source === "Zelle")
+              ?.amount || 0,
+        },
+        {
+          Metric: "Check/Money Order Amount (USD)",
+          Value:
+            stats.sourceBreakdown.find(
+              (item) => item.source === "Check/Money Order",
+            )?.amount || 0,
+        },
         { Metric: "Exported At", Value: formatDateTime(new Date()) },
       ];
 
@@ -2243,51 +2228,82 @@ const AdminMonthlyPayment = () => {
         </section>
 
         {/* ====================================================
-            CHANNEL SUMMARY
+            PAYMENT SOURCE SUMMARY
         ==================================================== */}
 
         <section className={styles.channelGrid}>
-          <div className={styles.channelCard}>
-            <div className={styles.channelIcon}>
-              <FaGlobe />
+          {[
+            {
+              label: "Square Payments",
+              source: "Square",
+              icon: <FaGlobe />,
+              count:
+                stats.sourceBreakdown.find((item) => item.source === "Square")
+                  ?.count || 0,
+              amount:
+                stats.sourceBreakdown.find((item) => item.source === "Square")
+                  ?.amount || 0,
+            },
+            {
+              label: "Cash Payments",
+              source: "Cash",
+              icon: <FaMoneyBillWave />,
+              count:
+                stats.sourceBreakdown.find((item) => item.source === "Cash")
+                  ?.count || 0,
+              amount:
+                stats.sourceBreakdown.find((item) => item.source === "Cash")
+                  ?.amount || 0,
+            },
+            {
+              label: "Zelle Payments",
+              source: "Zelle",
+              icon: <FaCreditCard />,
+              count:
+                stats.sourceBreakdown.find((item) => item.source === "Zelle")
+                  ?.count || 0,
+              amount:
+                stats.sourceBreakdown.find((item) => item.source === "Zelle")
+                  ?.amount || 0,
+            },
+            {
+              label: "Check / Money Order",
+              source: "Check/Money Order",
+              icon: <FaFileInvoiceDollar />,
+              count:
+                stats.sourceBreakdown.find(
+                  (item) => item.source === "Check/Money Order",
+                )?.count || 0,
+              amount:
+                stats.sourceBreakdown.find(
+                  (item) => item.source === "Check/Money Order",
+                )?.amount || 0,
+            },
+            {
+              label: "Rejected",
+              source: "Rejected",
+              icon: <FaTimesCircle />,
+              count: stats.rejected,
+              amount: stats.rejectedAmount,
+              danger: true,
+            },
+          ].map((item) => (
+            <div className={styles.channelCard} key={item.source}>
+              <div
+                className={`${styles.channelIcon} ${
+                  item.danger ? styles.dangerIcon : ""
+                }`}
+              >
+                {item.icon}
+              </div>
+
+              <div>
+                <span>{item.label}</span>
+                <strong>{item.count}</strong>
+                <small>USD {formatCurrency(item.amount)}</small>
+              </div>
             </div>
-
-            <div>
-              <span>Square Payments</span>
-
-              <strong>{stats.square}</strong>
-
-              <small>USD {formatCurrency(stats.squareAmount)}</small>
-            </div>
-          </div>
-
-          <div className={styles.channelCard}>
-            <div className={styles.channelIcon}>
-              <FaBuilding />
-            </div>
-
-            <div>
-              <span>Cash Payments</span>
-
-              <strong>{stats.cash}</strong>
-
-              <small>USD {formatCurrency(stats.cashAmount)}</small>
-            </div>
-          </div>
-
-          <div className={styles.channelCard}>
-            <div className={`${styles.channelIcon} ${styles.dangerIcon}`}>
-              <FaTimesCircle />
-            </div>
-
-            <div>
-              <span>Rejected</span>
-
-              <strong>{stats.rejected}</strong>
-
-              <small>USD {formatCurrency(stats.rejectedAmount)}</small>
-            </div>
-          </div>
+          ))}
         </section>
 
         {/* ====================================================
@@ -2301,7 +2317,7 @@ const AdminMonthlyPayment = () => {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search member, ID, Square payment, reference..."
+              placeholder="Search member, ID, payment, source, approver, reference..."
               aria-label="Search payments"
             />
 
@@ -2466,6 +2482,344 @@ const AdminMonthlyPayment = () => {
         )}
 
         {/* ====================================================
+            FILTER INSIGHTS
+            Shows exactly how much is in the current filtered view,
+            grouped by payment source and by approver.
+        ==================================================== */}
+
+        <section
+          style={{
+            marginTop: "18px",
+            padding: "20px",
+            borderRadius: "20px",
+            background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+            border: "1px solid rgba(15, 23, 42, 0.08)",
+            boxShadow: "0 12px 35px rgba(15, 23, 42, 0.06)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: "16px",
+              flexWrap: "wrap",
+              marginBottom: "18px",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "9px",
+                  fontWeight: 800,
+                  color: "#111827",
+                  fontSize: "16px",
+                }}
+              >
+                <FaChartLine />
+                Payment Insights
+              </div>
+              <p
+                style={{
+                  margin: "5px 0 0",
+                  color: "#64748b",
+                  fontSize: "13px",
+                }}
+              >
+                The totals below update automatically with your filters.
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+              }}
+            >
+              <div
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "12px",
+                  background: "#f1f5f9",
+                }}
+              >
+                <small style={{ display: "block", color: "#64748b" }}>
+                  Records
+                </small>
+                <strong style={{ fontSize: "17px", color: "#0f172a" }}>
+                  {filteredInsights.recordCount}
+                </strong>
+              </div>
+
+              <div
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: "12px",
+                  background: "#ecfdf5",
+                }}
+              >
+                <small style={{ display: "block", color: "#64748b" }}>
+                  Filtered amount
+                </small>
+                <strong style={{ fontSize: "17px", color: "#047857" }}>
+                  USD {formatCurrency(filteredInsights.totalAmount)}
+                </strong>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: "14px",
+            }}
+          >
+            <div
+              style={{
+                padding: "16px",
+                borderRadius: "16px",
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "12px",
+                }}
+              >
+                <strong style={{ color: "#0f172a" }}>By Payment Source</strong>
+                <FaMoneyBillWave />
+              </div>
+
+              {filteredInsights.sourceBreakdown.length === 0 ? (
+                <span style={{ color: "#94a3b8", fontSize: "13px" }}>
+                  No matching payments.
+                </span>
+              ) : (
+                filteredInsights.sourceBreakdown.map((item) => (
+                  <div
+                    key={item.source}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                      padding: "9px 0",
+                      borderTop: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        color: "#475569",
+                      }}
+                    >
+                      {getSourceIcon(item.source)}
+                      {item.source}
+                      <small>({item.count})</small>
+                    </span>
+                    <strong style={{ color: "#0f172a" }}>
+                      USD {formatCurrency(item.amount)}
+                    </strong>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div
+              style={{
+                padding: "16px",
+                borderRadius: "16px",
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "12px",
+                }}
+              >
+                <strong style={{ color: "#0f172a" }}>
+                  By Approved / Recorded By
+                </strong>
+                <FaUserShield />
+              </div>
+
+              {filteredInsights.approvedByBreakdown.length === 0 ? (
+                <span style={{ color: "#94a3b8", fontSize: "13px" }}>
+                  No matching payments.
+                </span>
+              ) : (
+                filteredInsights.approvedByBreakdown.map((item) => (
+                  <div
+                    key={item.approvedBy}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                      padding: "9px 0",
+                      borderTop: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <span style={{ color: "#475569" }}>
+                      {item.approvedBy} <small>({item.count})</small>
+                    </span>
+                    <strong style={{ color: "#0f172a" }}>
+                      USD {formatCurrency(item.amount)}
+                    </strong>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {filteredInsights.approverSourceBreakdown.length > 0 && (
+            <div
+              style={{
+                marginTop: "14px",
+                padding: "16px",
+                borderRadius: "16px",
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                overflowX: "auto",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "12px",
+                  marginBottom: "12px",
+                }}
+              >
+                <div>
+                  <strong style={{ color: "#0f172a" }}>
+                    Amount by Approver &amp; Payment Source
+                  </strong>
+                  <p
+                    style={{
+                      margin: "4px 0 0",
+                      color: "#64748b",
+                      fontSize: "12px",
+                    }}
+                  >
+                    See exactly who recorded or approved each payment source and
+                    how much.
+                  </p>
+                </div>
+                <FaChartLine />
+              </div>
+
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: "560px",
+                }}
+              >
+                <thead>
+                  <tr>
+                    {[
+                      "Approved / Recorded By",
+                      "Payment Source",
+                      "Records",
+                      "Amount",
+                    ].map((heading) => (
+                      <th
+                        key={heading}
+                        style={{
+                          textAlign:
+                            heading === "Amount" || heading === "Records"
+                              ? "right"
+                              : "left",
+                          padding: "10px 8px",
+                          fontSize: "11px",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: "#64748b",
+                          borderBottom: "1px solid #e2e8f0",
+                        }}
+                      >
+                        {heading}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredInsights.approverSourceBreakdown.map((item) => (
+                    <tr key={`${item.approvedBy}-${item.source}`}>
+                      <td
+                        style={{
+                          padding: "10px 8px",
+                          borderBottom: "1px solid #f1f5f9",
+                          color: "#334155",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {item.approvedBy}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px 8px",
+                          borderBottom: "1px solid #f1f5f9",
+                          color: "#475569",
+                        }}
+                      >
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "7px",
+                          }}
+                        >
+                          {getSourceIcon(item.source)}
+                          {item.source}
+                        </span>
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px 8px",
+                          borderBottom: "1px solid #f1f5f9",
+                          textAlign: "right",
+                          color: "#475569",
+                        }}
+                      >
+                        {item.count}
+                      </td>
+                      <td
+                        style={{
+                          padding: "10px 8px",
+                          borderBottom: "1px solid #f1f5f9",
+                          textAlign: "right",
+                          color: "#0f172a",
+                          fontWeight: 800,
+                        }}
+                      >
+                        USD {formatCurrency(item.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* ====================================================
             TABLE
         ==================================================== */}
 
@@ -2626,7 +2980,7 @@ const AdminMonthlyPayment = () => {
 
                         <td>
                           <span className={styles.sourceBadge}>
-                            {source === "Square" ? <FaGlobe /> : <FaBuilding />}
+                            {getSourceIcon(source)}
 
                             {source}
                           </span>
@@ -3080,6 +3434,8 @@ const AdminMonthlyPayment = () => {
                     }
                   >
                     <option value="Cash">Cash</option>
+                    <option value="Zelle">Zelle</option>
+                    <option value="Check/Money Order">Check/Money Order</option>
                   </select>
                 </label>
 
@@ -3552,7 +3908,7 @@ const AdminMonthlyPayment = () => {
                     <p>
                       {getPaymentSource(selectedPayment) === "Square"
                         ? "This Square payment does not contain a receipt image."
-                        : "This cash payment does not contain a receipt image."}
+                        : `This ${getPaymentSource(selectedPayment)} payment does not contain a receipt image.`}
                     </p>
                   </div>
                 )}
