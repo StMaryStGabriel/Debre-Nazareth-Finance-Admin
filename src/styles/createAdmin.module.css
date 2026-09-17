@@ -1,5 +1,11 @@
 /* ============================================================
-   GLOBAL BOX SIZING
+   CREATE MAIN ADMIN PAGE
+   ST. MARY & ST. GABRIEL
+   MODERN / RESPONSIVE / SECURE
+============================================================ */
+
+/* ============================================================
+   BOX SIZING
 ============================================================ */
 
 .container,
@@ -17,21 +23,21 @@
   min-height: 100vh;
   min-height: 100dvh;
 
+  width: 100%;
+
+  position: relative;
+
   display: flex;
   justify-content: center;
   align-items: center;
+
+  padding: 90px 20px 30px;
 
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 
-  padding: 20px;
-
-  position: relative;
-
   overflow-x: hidden;
-
-  isolation: isolate;
 
   font-family:
     Inter,
@@ -42,61 +48,230 @@
     Helvetica,
     Arial,
     sans-serif;
+
+  isolation: isolate;
 }
 
 /* ============================================================
    BACKGROUND OVERLAY
-
-   IMPORTANT:
-   pointer-events: none prevents the overlay from blocking
-   clicks and typing inside the form.
 ============================================================ */
 
 .overlay {
   position: absolute;
   inset: 0;
 
-  background: linear-gradient(
-    135deg,
-    rgba(91, 26, 26, 0.88),
-    rgba(15, 23, 42, 0.9)
-  );
-
   z-index: 0;
 
   pointer-events: none;
+
+  background: linear-gradient(
+    135deg,
+    rgba(58, 14, 14, 0.94) 0%,
+    rgba(91, 26, 26, 0.88) 42%,
+    rgba(21, 15, 12, 0.94) 100%
+  );
 }
 
 /* ============================================================
-   CARD
+   BACKGROUND GLOW
+============================================================ */
+
+.backgroundGlow {
+  position: absolute;
+
+  width: 650px;
+  height: 650px;
+
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+
+  border-radius: 50%;
+
+  background: radial-gradient(
+    circle,
+    rgba(212, 175, 55, 0.14) 0%,
+    rgba(212, 175, 55, 0.05) 38%,
+    transparent 72%
+  );
+
+  filter: blur(10px);
+
+  pointer-events: none;
+
+  z-index: 0;
+}
+
+/* ============================================================
+   TOP BRAND BAR
+============================================================ */
+
+.topBrand {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  padding: 18px 28px;
+
+  z-index: 5;
+
+  background: rgba(31, 11, 8, 0.3);
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.topBrandInner {
+  width: 100%;
+  max-width: 1180px;
+
+  margin: 0 auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+}
+
+.topLogo {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border: 2px solid rgba(212, 175, 55, 0.8);
+
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.25);
+}
+
+.topBrandInner strong {
+  display: block;
+
+  color: #ffffff;
+
+  font-family: Georgia, "Times New Roman", serif;
+
+  font-size: 14px;
+
+  line-height: 1.2;
+
+  letter-spacing: 0.02em;
+}
+
+.topBrandInner span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: rgba(255, 255, 255, 0.62);
+
+  font-size: 11px;
+
+  line-height: 1.2;
+
+  letter-spacing: 0.04em;
+}
+
+/* ============================================================
+   PAGE CONTENT
+============================================================ */
+
+.pageContent {
+  width: 100%;
+
+  max-width: 500px;
+
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ============================================================
+   MAIN CARD
 ============================================================ */
 
 .card {
+  width: 100%;
+
   position: relative;
 
-  z-index: 1;
+  padding: 38px 40px 32px;
 
-  width: 100%;
-  max-width: 460px;
+  border-radius: 28px;
 
-  padding: 40px;
-
-  border-radius: 30px;
-
-  background: rgba(255, 255, 255, 0.12);
-
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.08)
+  );
 
   border: 1px solid rgba(255, 255, 255, 0.2);
 
   box-shadow:
-    0 25px 70px rgba(0, 0, 0, 0.45),
-    0 10px 30px rgba(0, 0, 0, 0.15);
+    0 30px 80px rgba(0, 0, 0, 0.48),
+    0 10px 30px rgba(0, 0, 0, 0.18);
 
-  color: white;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+
+  color: #ffffff;
+
+  overflow: hidden;
 
   isolation: isolate;
+
+  animation: cardEnter 0.55s ease both;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ============================================================
+   CARD TOP ACCENT
+============================================================ */
+
+.cardAccent {
+  position: absolute;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 4px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #d4af37 20%,
+    #f5cf63 50%,
+    #d4af37 80%,
+    transparent
+  );
+
+  z-index: 3;
 }
 
 /* ============================================================
@@ -104,91 +279,279 @@
 ============================================================ */
 
 .brand {
+  width: 100%;
+
+  text-align: center;
+
   position: relative;
 
   z-index: 2;
 
-  text-align: center;
-
-  margin-bottom: 30px;
+  margin-bottom: 25px;
 }
 
 /* ============================================================
    LOGO
 ============================================================ */
 
+.logoWrapper {
+  position: relative;
+
+  width: 112px;
+  height: 112px;
+
+  margin: 0 auto 18px;
+}
+
+.logoRing {
+  width: 112px;
+  height: 112px;
+
+  padding: 5px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(135deg, #d4af37, #f5cf63, #b89222);
+
+  box-shadow: 0 12px 35px rgba(212, 175, 55, 0.3);
+
+  animation: logoFloat 4s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 .logo {
   display: block;
 
-  width: 95px;
-  height: 95px;
-
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
 
   border-radius: 50%;
 
   object-fit: cover;
 
-  border: 4px solid #d4af37;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+}
 
-  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+.logoBadge {
+  position: absolute;
+
+  right: -2px;
+  bottom: 2px;
+
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #5b1a1a;
+
+  color: #f5cf63;
+
+  border: 2px solid #f5cf63;
+
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+
+  font-size: 14px;
+}
+
+.logoBadge svg {
+  width: 15px;
+  height: 15px;
 }
 
 /* ============================================================
-   BRAND TITLE
+   EYEBROW
+============================================================ */
+
+.eyebrow {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-bottom: 8px;
+
+  color: #f5cf63;
+
+  font-size: 9px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.18em;
+
+  line-height: 1.3;
+}
+
+.eyebrowLine {
+  width: 24px;
+  height: 1px;
+
+  background: linear-gradient(90deg, transparent, rgba(245, 207, 99, 0.8));
+}
+
+.eyebrowLine:last-child {
+  background: linear-gradient(90deg, rgba(245, 207, 99, 0.8), transparent);
+}
+
+/* ============================================================
+   TITLE
 ============================================================ */
 
 .brand h1 {
-  color: #d4af37;
-
-  font-size: 28px;
-
-  line-height: 1.25;
-
-  margin-top: 15px;
-  margin-bottom: 10px;
-
-  font-weight: 800;
-}
-
-/* ============================================================
-   BRAND DESCRIPTION
-============================================================ */
-
-.brand p {
-  font-size: 14px;
-
-  line-height: 1.5;
-
-  opacity: 0.85;
-
   margin: 0;
-}
 
-/* ============================================================
-   ACCESS BADGE
-============================================================ */
+  color: #f5cf63;
 
-.access {
-  display: inline-block;
+  font-family: Georgia, "Times New Roman", serif;
 
-  margin-top: 12px;
-
-  padding: 7px 14px;
-
-  border-radius: 999px;
-
-  border: 1px solid rgba(212, 175, 55, 0.6);
-
-  background: rgba(212, 175, 55, 0.1);
-
-  color: #d4af37;
-
-  font-size: 12px;
+  font-size: 27px;
 
   font-weight: 700;
 
-  letter-spacing: 0.2px;
+  line-height: 1.2;
+
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   DESCRIPTION
+============================================================ */
+
+.brand p {
+  max-width: 410px;
+
+  margin: 10px auto 0;
+
+  color: rgba(255, 255, 255, 0.74);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+/* ============================================================
+   ACCESS LABEL
+============================================================ */
+
+.access {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  margin-top: 14px;
+
+  padding: 7px 12px;
+
+  border-radius: 999px;
+
+  background: rgba(212, 175, 55, 0.11);
+
+  border: 1px solid rgba(212, 175, 55, 0.22);
+
+  color: #f5cf63;
+
+  font-size: 10px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.04em;
+}
+
+.access svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ============================================================
+   SECURITY NOTICE
+============================================================ */
+
+.notice {
+  width: 100%;
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 11px;
+
+  margin-bottom: 20px;
+
+  padding: 13px 14px;
+
+  border-radius: 15px;
+
+  background: rgba(212, 175, 55, 0.08);
+
+  border: 1px solid rgba(212, 175, 55, 0.18);
+}
+
+.noticeIcon {
+  width: 32px;
+  height: 32px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: rgba(212, 175, 55, 0.14);
+
+  color: #f5cf63;
+}
+
+.noticeIcon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.noticeContent {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.noticeContent strong {
+  color: #ffffff;
+
+  font-size: 12px;
+
+  font-weight: 750;
+
+  line-height: 1.3;
+}
+
+.noticeContent span {
+  color: rgba(255, 255, 255, 0.62);
+
+  font-size: 11px;
+
+  line-height: 1.45;
 }
 
 /* ============================================================
@@ -210,7 +573,7 @@
 .group {
   width: 100%;
 
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 
   position: relative;
 
@@ -226,60 +589,82 @@
 
   align-items: center;
 
-  gap: 8px;
-
-  font-weight: 700;
+  gap: 7px;
 
   margin-bottom: 8px;
 
-  color: #ffffff;
+  color: rgba(255, 255, 255, 0.92);
 
-  position: relative;
+  font-size: 12px;
 
-  z-index: 2;
+  font-weight: 750;
+
+  line-height: 1.3;
 
   cursor: text;
 }
 
-.group label svg {
-  width: 17px;
-  height: 17px;
+.labelIcon {
+  width: 24px;
+  height: 24px;
 
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  color: #d4af37;
+  border-radius: 7px;
 
-  pointer-events: none;
+  background: rgba(212, 175, 55, 0.12);
+
+  color: #f5cf63;
+}
+
+.labelIcon svg {
+  width: 13px;
+  height: 13px;
 }
 
 /* ============================================================
-   INPUT
+   INPUT WRAPPER
+============================================================ */
+
+.inputWrapper {
+  position: relative;
+
+  width: 100%;
+
+  z-index: 2;
+}
+
+/* ============================================================
+   INPUTS
 ============================================================ */
 
 .group input {
   display: block;
 
   width: 100%;
-
   min-width: 0;
 
-  height: 50px;
+  height: 51px;
 
-  padding: 15px;
+  padding: 0 15px;
 
-  border-radius: 15px;
+  border-radius: 13px;
 
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 
   outline: none;
 
-  background: #ffffff;
+  font-family: inherit;
 
-  color: #222222;
-
-  font-size: 15px;
+  font-size: 14px;
 
   line-height: 1.2;
+
+  color: #241714;
+
+  background: rgba(255, 255, 255, 0.97);
 
   appearance: none;
   -webkit-appearance: none;
@@ -295,22 +680,13 @@
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
+    transform 0.2s ease,
     background-color 0.2s ease;
 }
 
-/* ============================================================
-   INPUT PLACEHOLDER
-============================================================ */
-
-.group input::placeholder {
-  color: #6b7280;
-
-  opacity: 1;
+.group input:hover:not(:disabled) {
+  border-color: rgba(212, 175, 55, 0.45);
 }
-
-/* ============================================================
-   INPUT FOCUS
-============================================================ */
 
 .group input:focus {
   border-color: #d4af37;
@@ -318,8 +694,44 @@
   background: #ffffff;
 
   box-shadow:
-    0 0 0 3px rgba(212, 175, 55, 0.25),
-    0 5px 18px rgba(0, 0, 0, 0.12);
+    0 0 0 3px rgba(212, 175, 55, 0.16),
+    0 7px 20px rgba(0, 0, 0, 0.1);
+
+  transform: translateY(-1px);
+}
+
+.group input:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.7;
+}
+
+/* ============================================================
+   PLACEHOLDER
+============================================================ */
+
+.group input::placeholder {
+  color: #8a7e7a;
+
+  opacity: 1;
+}
+
+/* ============================================================
+   SMALL HELP TEXT
+============================================================ */
+
+.group small {
+  display: block;
+
+  margin-top: 6px;
+
+  padding-left: 2px;
+
+  color: rgba(255, 255, 255, 0.5);
+
+  font-size: 10.5px;
+
+  line-height: 1.45;
 }
 
 /* ============================================================
@@ -339,21 +751,18 @@
 ============================================================ */
 
 .password input {
-  width: 100%;
-
-  padding-right: 58px;
+  padding-right: 56px;
 }
 
 /* ============================================================
-   PASSWORD SHOW/HIDE BUTTON
+   PASSWORD TOGGLE
 ============================================================ */
 
 .passwordToggle {
   position: absolute;
 
-  right: 7px;
-
   top: 50%;
+  right: 6px;
 
   transform: translateY(-50%);
 
@@ -363,7 +772,6 @@
   padding: 0;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
@@ -375,9 +783,9 @@
 
   color: #5b1a1a;
 
-  cursor: pointer;
+  font-size: 18px;
 
-  font-size: 20px;
+  cursor: pointer;
 
   z-index: 5;
 
@@ -386,13 +794,18 @@
 
   transition:
     background-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.passwordToggle:hover {
+.passwordToggle:hover:not(:disabled) {
   background: rgba(91, 26, 26, 0.08);
 
   color: #742222;
+}
+
+.passwordToggle:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.94);
 }
 
 .passwordToggle:focus-visible {
@@ -401,29 +814,113 @@
   outline-offset: 2px;
 }
 
+.passwordToggle:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.5;
+}
+
 .passwordToggle svg {
-  width: 20px;
-  height: 20px;
+  width: 19px;
+  height: 19px;
 
   pointer-events: none;
 }
 
 /* ============================================================
-   SMALL HELP TEXT
+   ALERTS
 ============================================================ */
 
-.group small {
-  display: block;
+.alert {
+  width: 100%;
 
-  margin-top: 8px;
+  display: flex;
 
-  opacity: 0.7;
+  align-items: flex-start;
 
-  color: #ffffff;
+  gap: 10px;
 
+  margin-bottom: 18px;
+
+  padding: 12px 13px;
+
+  border-radius: 13px;
+
+  position: relative;
+
+  z-index: 3;
+
+  overflow-wrap: anywhere;
+
+  animation: alertEnter 0.25s ease both;
+}
+
+@keyframes alertEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.alertIcon {
+  width: 18px;
+  height: 18px;
+
+  flex-shrink: 0;
+
+  margin-top: 1px;
+}
+
+.alert > div {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+.alert strong {
+  font-size: 11px;
+
+  font-weight: 800;
+
+  line-height: 1.3;
+}
+
+.alert span {
   font-size: 12px;
 
   line-height: 1.45;
+}
+
+/* ============================================================
+   ERROR
+============================================================ */
+
+.error {
+  background: rgba(220, 38, 38, 0.16);
+
+  border: 1px solid rgba(248, 113, 113, 0.3);
+
+  color: #fee2e2;
+}
+
+/* ============================================================
+   SUCCESS
+============================================================ */
+
+.success {
+  background: rgba(22, 163, 74, 0.16);
+
+  border: 1px solid rgba(74, 222, 128, 0.28);
+
+  color: #dcfce7;
 }
 
 /* ============================================================
@@ -433,94 +930,129 @@
 .createBtn {
   width: 100%;
 
-  min-height: 50px;
+  min-height: 52px;
 
-  padding: 15px;
+  margin-top: 4px;
+
+  padding: 14px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
 
   border: none;
 
-  border-radius: 50px;
+  border-radius: 999px;
 
-  background: linear-gradient(135deg, #d4af37, #f59e0b);
+  background: linear-gradient(135deg, #d4af37 0%, #f5cf63 48%, #d4af37 100%);
 
-  color: #5b1a1a;
+  background-size: 200% 100%;
 
-  font-weight: 800;
+  color: #4b1818;
 
-  font-size: 16px;
+  font-family: inherit;
+
+  font-size: 14px;
+
+  font-weight: 850;
+
+  letter-spacing: 0.01em;
 
   cursor: pointer;
-
-  display: flex;
-
-  justify-content: center;
-
-  align-items: center;
-
-  gap: 10px;
 
   position: relative;
 
   z-index: 3;
 
-  appearance: none;
-  -webkit-appearance: none;
+  overflow: hidden;
+
+  box-shadow: 0 10px 24px rgba(212, 175, 55, 0.2);
 
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
-    opacity 0.2s ease;
+    opacity 0.2s ease,
+    background-position 0.35s ease;
 }
 
-/* ============================================================
-   CREATE BUTTON HOVER
-============================================================ */
+.createBtn::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -100%;
+
+  width: 60%;
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.32),
+    transparent
+  );
+
+  transform: skewX(-20deg);
+
+  transition: left 0.55s ease;
+
+  pointer-events: none;
+}
 
 .createBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 14px 30px rgba(212, 175, 55, 0.3);
+
+  background-position: 100% 0;
 }
 
-/* ============================================================
-   CREATE BUTTON ACTIVE
-============================================================ */
+.createBtn:hover:not(:disabled)::before {
+  left: 140%;
+}
 
 .createBtn:active:not(:disabled) {
   transform: translateY(0);
-}
 
-/* ============================================================
-   CREATE BUTTON FOCUS
-============================================================ */
+  box-shadow: 0 8px 18px rgba(212, 175, 55, 0.2);
+}
 
 .createBtn:focus-visible {
   outline: 2px solid #ffffff;
 
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
-
-/* ============================================================
-   CREATE BUTTON DISABLED
-============================================================ */
 
 .createBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.65;
 
   cursor: not-allowed;
-}
 
-/* ============================================================
-   CREATE BUTTON ICON
-============================================================ */
+  box-shadow: none;
+}
 
 .createBtn svg {
   width: 18px;
   height: 18px;
 
   flex-shrink: 0;
+}
 
-  pointer-events: none;
+/* ============================================================
+   LOADING SPINNER
+============================================================ */
+
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ============================================================
@@ -528,21 +1060,24 @@
 ============================================================ */
 
 .back {
-  display: block;
+  min-height: 42px;
 
-  width: 100%;
+  margin-top: 14px;
 
-  text-align: center;
+  display: flex;
 
-  margin-top: 20px;
+  align-items: center;
+  justify-content: center;
 
-  color: #d4af37;
+  gap: 7px;
+
+  color: #f5cf63;
 
   text-decoration: none;
 
-  font-weight: 600;
+  font-size: 12px;
 
-  line-height: 1.4;
+  font-weight: 700;
 
   position: relative;
 
@@ -550,13 +1085,25 @@
 
   transition:
     color 0.2s ease,
-    opacity 0.2s ease;
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.back svg {
+  width: 15px;
+  height: 15px;
+
+  transition: transform 0.2s ease;
 }
 
 .back:hover {
-  color: #ffd966;
+  color: #ffe49a;
 
-  text-decoration: underline;
+  transform: translateX(-2px);
+}
+
+.back:hover svg {
+  transform: translateX(-2px);
 }
 
 .back:focus-visible {
@@ -564,99 +1111,90 @@
 
   outline-offset: 3px;
 
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 /* ============================================================
-   ERROR / SUCCESS
-============================================================ */
-
-.error,
-.success {
-  position: relative;
-
-  z-index: 3;
-
-  padding: 12px 14px;
-
-  border-radius: 12px;
-
-  margin-bottom: 20px;
-
-  text-align: center;
-
-  font-size: 14px;
-
-  line-height: 1.4;
-
-  overflow-wrap: anywhere;
-}
-
-/* ============================================================
-   ERROR
-============================================================ */
-
-.error {
-  background: #dc2626;
-
-  color: #ffffff;
-}
-
-/* ============================================================
-   SUCCESS
-============================================================ */
-
-.success {
-  background: #16a34a;
-
-  color: #ffffff;
-}
-
-/* ============================================================
-   SECURITY MESSAGE
+   SECURITY FOOTER
 ============================================================ */
 
 .security {
-  margin-top: 25px;
+  margin-top: 18px;
+
+  padding-top: 16px;
 
   display: flex;
 
+  align-items: center;
   justify-content: center;
 
-  align-items: center;
+  flex-wrap: wrap;
 
-  gap: 8px;
+  gap: 6px;
 
-  font-size: 13px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  color: rgba(255, 255, 255, 0.52);
+
+  font-size: 10px;
 
   line-height: 1.4;
-
-  opacity: 0.8;
-
-  position: relative;
-
-  z-index: 2;
-
-  text-align: center;
 }
 
 .security svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 
-  flex-shrink: 0;
+  color: #d4af37;
+}
 
-  pointer-events: none;
+.securityDot {
+  width: 3px;
+  height: 3px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.35);
 }
 
 /* ============================================================
-   AUTOFILL SUPPORT
+   PAGE FOOTER
+============================================================ */
+
+.footer {
+  width: 100%;
+
+  margin-top: 18px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  flex-wrap: wrap;
+
+  gap: 8px;
+
+  color: rgba(255, 255, 255, 0.48);
+
+  text-align: center;
+
+  font-size: 9px;
+
+  line-height: 1.5;
+}
+
+.footerDivider {
+  color: rgba(212, 175, 55, 0.7);
+}
+
+/* ============================================================
+   AUTOFILL FIX
 ============================================================ */
 
 .group input:-webkit-autofill,
 .group input:-webkit-autofill:hover,
 .group input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #222222;
+  -webkit-text-fill-color: #241714;
 
   box-shadow: 0 0 0 1000px #ffffff inset;
 
@@ -664,53 +1202,138 @@
 }
 
 /* ============================================================
-   TABLET / MOBILE
+   TABLET
+============================================================ */
+
+@media (max-width: 700px) {
+  .container {
+    padding: 82px 16px 25px;
+  }
+
+  .card {
+    padding: 32px 28px 28px;
+
+    border-radius: 25px;
+  }
+
+  .brand h1 {
+    font-size: 24px;
+  }
+}
+
+/* ============================================================
+   MOBILE
 ============================================================ */
 
 @media (max-width: 500px) {
   .container {
-    padding: 15px;
+    min-height: 100dvh;
 
-    align-items: center;
+    padding: 76px 13px 20px;
+
+    align-items: flex-start;
+  }
+
+  .topBrand {
+    padding: 13px 16px;
+  }
+
+  .topLogo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .topBrandInner strong {
+    font-size: 12px;
+  }
+
+  .topBrandInner span {
+    font-size: 9px;
+  }
+
+  .pageContent {
+    margin-top: 8px;
   }
 
   .card {
     width: 100%;
 
-    max-width: 460px;
+    padding: 29px 20px 24px;
 
-    padding: 25px;
+    border-radius: 22px;
+  }
 
-    border-radius: 24px;
+  .logoWrapper,
+  .logoRing {
+    width: 96px;
+    height: 96px;
+  }
+
+  .logoBadge {
+    width: 29px;
+    height: 29px;
+
+    right: -1px;
+    bottom: 1px;
   }
 
   .brand {
-    margin-bottom: 25px;
-  }
-
-  .logo {
-    width: 85px;
-    height: 85px;
+    margin-bottom: 21px;
   }
 
   .brand h1 {
-    font-size: 22px;
+    font-size: 21px;
 
-    line-height: 1.3;
+    line-height: 1.25;
   }
 
   .brand p {
-    font-size: 13px;
+    margin-top: 8px;
+
+    font-size: 11.5px;
+
+    line-height: 1.55;
   }
 
   .access {
-    font-size: 11px;
+    max-width: 100%;
 
-    padding: 6px 12px;
+    font-size: 9px;
+
+    padding: 6px 10px;
+  }
+
+  .eyebrow {
+    font-size: 8px;
+
+    letter-spacing: 0.13em;
+  }
+
+  .eyebrowLine {
+    width: 18px;
+  }
+
+  .notice {
+    padding: 11px;
+
+    margin-bottom: 17px;
+  }
+
+  .noticeIcon {
+    width: 29px;
+    height: 29px;
+  }
+
+  .noticeContent strong {
+    font-size: 11px;
+  }
+
+  .noticeContent span {
+    font-size: 10px;
   }
 
   .group {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
   }
 
   .group input {
@@ -719,10 +1342,26 @@
     font-size: 16px;
   }
 
-  .createBtn {
-    min-height: 50px;
+  .group small {
+    font-size: 10px;
+  }
 
-    font-size: 15px;
+  .createBtn {
+    min-height: 51px;
+
+    font-size: 14px;
+  }
+
+  .security {
+    margin-top: 15px;
+
+    padding-top: 14px;
+  }
+
+  .footer {
+    margin-top: 14px;
+
+    font-size: 8.5px;
   }
 }
 
@@ -732,38 +1371,75 @@
 
 @media (max-width: 360px) {
   .container {
-    padding: 10px;
+    padding: 70px 9px 15px;
+  }
+
+  .topBrand {
+    padding: 11px 12px;
+  }
+
+  .topLogo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .topBrandInner {
+    gap: 9px;
+  }
+
+  .topBrandInner strong {
+    font-size: 11px;
+  }
+
+  .topBrandInner span {
+    font-size: 8px;
   }
 
   .card {
-    padding: 20px;
+    padding: 24px 16px 20px;
 
-    border-radius: 20px;
+    border-radius: 19px;
   }
 
-  .logo {
-    width: 75px;
-    height: 75px;
+  .logoWrapper,
+  .logoRing {
+    width: 84px;
+    height: 84px;
+  }
+
+  .logoBadge {
+    width: 26px;
+    height: 26px;
   }
 
   .brand h1 {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .brand p {
-    font-size: 12px;
+    font-size: 10.5px;
+  }
+
+  .access {
+    font-size: 8px;
   }
 
   .group input {
-    font-size: 16px;
+    height: 48px;
   }
 
   .createBtn {
-    font-size: 14px;
+    min-height: 49px;
+
+    font-size: 13px;
+  }
+
+  .back {
+    font-size: 11px;
   }
 
   .security {
-    font-size: 12px;
+    font-size: 9px;
   }
 }
 
@@ -772,10 +1448,37 @@
 ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-  .group input,
-  .passwordToggle,
+  .card,
+  .logoRing,
+  .alert,
+  .spinner,
   .createBtn,
-  .back {
-    transition: none;
+  .passwordToggle,
+  .back,
+  .back svg,
+  .group input {
+    animation: none !important;
+
+    transition: none !important;
+  }
+}
+
+/* ============================================================
+   HIGH CONTRAST / TOUCH FRIENDLY
+============================================================ */
+
+@media (hover: none) {
+  .createBtn:hover:not(:disabled) {
+    transform: none;
+
+    box-shadow: 0 10px 24px rgba(212, 175, 55, 0.2);
+  }
+
+  .back:hover {
+    transform: none;
+  }
+
+  .back:hover svg {
+    transform: none;
   }
 }

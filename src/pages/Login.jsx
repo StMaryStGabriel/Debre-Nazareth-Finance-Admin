@@ -1,114 +1,600 @@
-import { useState } from "react";
+// =====================================================
+// pages/FinanceLogin.jsx
+// St. Mary & St. Gabriel Finance Administration Login
+// =====================================================
 
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-import { FiEye, FiEyeOff, FiLogIn, FiUserPlus, FiShield } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiCheckCircle,
+  FiClock,
+  FiEye,
+  FiEyeOff,
+  FiKey,
+  FiLogIn,
+  FiMail,
+  FiRefreshCw,
+  FiShield,
+  FiUserPlus,
+} from "react-icons/fi";
 
 import api from "../services/api";
-
 import styles from "../styles/login.module.css";
 
 import logo from "../assets/images/logo.jpg";
-
 import bg from "../assets/images/bg.jpg";
 
-export default function Login() {
+export default function FinanceLogin() {
+  // ===================================================
+  // LOGIN STATE
+  // ===================================================
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
+
+  // ===================================================
+  // VERIFICATION STATE
+  // ===================================================
+
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationStep, setVerificationStep] = useState(false);
+  const [adminId, setAdminId] = useState("");
+  const [verificationEmail, setVerificationEmail] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const [attemptsRemaining, setAttemptsRemaining] = useState(null);
+
+  // ===================================================
+  // GENERAL STATE
+  // ===================================================
+
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const navigate = useNavigate();
+  const verificationInputRef = useRef(null);
+
+  // ===================================================
+  // MASK EMAIL
+  // ===================================================
+
+  const maskEmail = (value) => {
+    if (!value) return "";
+
+    const parts = value.split("@");
+
+    if (parts.length !== 2) {
+      return value;
+    }
+
+    const username = parts[0];
+    const domain = parts[1];
+
+    if (username.length <= 2) {
+      return `${username.charAt(0)}***@${domain}`;
+    }
+
+    const firstCharacter = username.charAt(0);
+    const lastCharacter = username.charAt(username.length - 1);
+
+    return `${firstCharacter}***${lastCharacter}@${domain}`;
+  };
+
+  // ===================================================
+  // START RESEND COUNTDOWN
+  // ===================================================
+
+  const startResendCountdown = () => {
+    setResendCountdown(60);
+    setCanResend(false);
+  };
+
+  // ===================================================
+  // RESEND COUNTDOWN TIMER
+  // ===================================================
+
+  useEffect(() => {
+    if (!verificationStep) {
+      return undefined;
+    }
+
+    if (resendCountdown <= 0) {
+      setCanResend(true);
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      setResendCountdown((previous) => previous - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [verificationStep, resendCountdown]);
+
+  // ===================================================
+  // FOCUS VERIFICATION INPUT
+  // ===================================================
+
+  useEffect(() => {
+    if (!verificationStep) {
+      return undefined;
+    }
+
+    const timer = setTimeout(() => {
+      verificationInputRef.current?.focus();
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [verificationStep]);
+
+  // ===================================================
+  // CLEAR OLD ADMIN SESSION
+  // ===================================================
+
+  const clearAdminSession = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminName");
+    localStorage.removeItem("adminEmail");
+    localStorage.removeItem("adminId");
+    localStorage.removeItem("adminRole");
+    localStorage.removeItem("adminExpiry");
+  };
+
+  // ===================================================
+  // SAVE FINANCE ADMIN SESSION
+  // ===================================================
+
+  const saveFinanceAdminSession = (data) => {
+    clearAdminSession();
+
+    localStorage.setItem("adminToken", data.token);
+    localStorage.setItem("adminName", data.name || "");
+    localStorage.setItem("adminEmail", data.email || "");
+    localStorage.setItem("adminId", data._id);
+    localStorage.setItem("adminRole", data.role || "finance");
+
+    localStorage.setItem(
+      "adminExpiry",
+      remember
+        ? Date.now() + 7 * 24 * 60 * 60 * 1000
+        : Date.now() + 24 * 60 * 60 * 1000,
+    );
+  };
+
+  // ===================================================
+  // LOGIN - STEP 1
+  // ===================================================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     setError("");
+    setMessage("");
 
-    if (!email || !password) {
-      setError("Please enter email and password");
+    if (!email.trim() || !password) {
+      setError("Please enter your finance administrator email and password.");
       return;
     }
 
     try {
       setLoading(true);
 
-      // ==========================================
+      // ==============================================
       // FINANCE ADMIN LOGIN
-      // ==========================================
+      // ==============================================
 
       const res = await api.post("/finance-auth/login", {
         email: email.trim().toLowerCase(),
         password,
       });
 
-      // ==========================================
-      // CHECK TOKEN
-      // ==========================================
+      // ==============================================
+      // EMAIL VERIFICATION FLOW
+      // ==============================================
 
-      if (!res.data?.token) {
-        setError("No authentication token received");
+      if (res.data?.requiresVerification && res.data?.adminId) {
+        setAdminId(res.data.adminId);
+
+        const returnedEmail = res.data.email || email.trim().toLowerCase();
+
+        setVerificationEmail(returnedEmail);
+        setVerificationCode("");
+        setAttemptsRemaining(null);
+
+        setMessage(
+          res.data.message ||
+            "A verification code has been sent to your email.",
+        );
+
+        setVerificationStep(true);
+        startResendCountdown();
+
         return;
       }
 
-      // ==========================================
-      // CLEAR ANY PREVIOUS ADMIN SESSION
-      // ==========================================
+      // ==============================================
+      // SAFETY CHECK
+      // ==============================================
 
-      localStorage.removeItem("adminToken");
-      localStorage.removeItem("adminName");
-      localStorage.removeItem("adminEmail");
-      localStorage.removeItem("adminId");
-      localStorage.removeItem("adminRole");
-      localStorage.removeItem("adminExpiry");
+      if (!res.data?.token) {
+        setError("No authentication token received.");
+        return;
+      }
 
-      // ==========================================
-      // SAVE FINANCE ADMIN SESSION
-      // ==========================================
+      // ==============================================
+      // NORMAL LOGIN FALLBACK
+      // ==============================================
 
-      localStorage.setItem("adminToken", res.data.token);
-
-      // Save admin name for the sidebar profile
-      localStorage.setItem("adminName", res.data.name || "");
-
-      localStorage.setItem("adminEmail", res.data.email || "");
-
-      localStorage.setItem("adminId", res.data._id);
-
-      // Backend returns role: "finance"
-      // Keeping this unchanged so existing
-      // authentication and authorization logic works.
-      localStorage.setItem("adminRole", res.data.role || "finance");
-
-      // ==========================================
-      // SESSION EXPIRY
-      // ==========================================
-
-      localStorage.setItem(
-        "adminExpiry",
-        remember
-          ? Date.now() + 7 * 24 * 60 * 60 * 1000
-          : Date.now() + 24 * 60 * 60 * 1000,
-      );
-
-      // ==========================================
-      // GO TO FINANCE ADMIN DASHBOARD
-      // ==========================================
-
-      navigate("/admin/dashboard");
+      saveFinanceAdminSession(res.data);
+      navigate("/finance/dashboard");
     } catch (err) {
       console.error("Finance admin login error:", err);
 
       setError(
         err.response?.data?.message ||
-          "Invalid finance administrator email or password",
+          "Invalid finance administrator email or password.",
       );
     } finally {
       setLoading(false);
     }
   };
+
+  // ===================================================
+  // VERIFICATION CODE INPUT
+  // ===================================================
+
+  const handleVerificationCodeChange = (e) => {
+    const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+
+    setVerificationCode(value);
+
+    if (error) {
+      setError("");
+    }
+  };
+
+  // ===================================================
+  // VERIFY CODE - STEP 2
+  // ===================================================
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+
+    setError("");
+    setMessage("");
+
+    if (!/^\d{6}$/.test(verificationCode)) {
+      setError("Please enter the 6-digit verification code.");
+      verificationInputRef.current?.focus();
+      return;
+    }
+
+    if (!adminId) {
+      setError(
+        "Your verification session is no longer available. Please log in again.",
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // ==============================================
+      // FINANCE ADMIN CODE VERIFICATION
+      // ==============================================
+
+      const res = await api.post("/finance-auth/verify-login", {
+        adminId,
+        code: verificationCode,
+      });
+
+      if (!res.data?.token) {
+        setError(
+          "Verification succeeded, but no authentication token was received.",
+        );
+        return;
+      }
+
+      // ==============================================
+      // SAVE FINANCE ADMIN SESSION
+      // ==============================================
+
+      saveFinanceAdminSession(res.data);
+
+      // ==============================================
+      // CLEAR VERIFICATION STATE
+      // ==============================================
+
+      setVerificationCode("");
+      setAdminId("");
+      setVerificationEmail("");
+      setVerificationStep(false);
+      setAttemptsRemaining(null);
+
+      // ==============================================
+      // GO TO FINANCE DASHBOARD
+      // ==============================================
+
+      navigate("/finance/dashboard");
+    } catch (err) {
+      console.error("Finance admin verification error:", err);
+
+      const responseData = err.response?.data;
+
+      setError(
+        responseData?.message ||
+          "The verification code is incorrect or has expired.",
+      );
+
+      if (typeof responseData?.attemptsRemaining === "number") {
+        setAttemptsRemaining(responseData.attemptsRemaining);
+      }
+
+      setVerificationCode("");
+
+      setTimeout(() => {
+        verificationInputRef.current?.focus();
+      }, 100);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ===================================================
+  // RESEND VERIFICATION CODE
+  // ===================================================
+
+  const handleResendCode = async () => {
+    if (!canResend || resending || !adminId) {
+      return;
+    }
+
+    setError("");
+    setMessage("");
+
+    try {
+      setResending(true);
+
+      const res = await api.post("/finance-auth/resend-login-code", {
+        adminId,
+      });
+
+      setVerificationCode("");
+      setAttemptsRemaining(null);
+
+      setMessage(
+        res.data?.message ||
+          "A new verification code has been sent to your email.",
+      );
+
+      startResendCountdown();
+
+      setTimeout(() => {
+        verificationInputRef.current?.focus();
+      }, 150);
+    } catch (err) {
+      console.error("Finance resend verification code error:", err);
+
+      const responseData = err.response?.data;
+
+      setError(
+        responseData?.message || "Unable to send a new verification code.",
+      );
+
+      if (typeof responseData?.retryAfterSeconds === "number") {
+        setResendCountdown(responseData.retryAfterSeconds);
+        setCanResend(false);
+      }
+    } finally {
+      setResending(false);
+    }
+  };
+
+  // ===================================================
+  // RETURN TO PASSWORD LOGIN
+  // ===================================================
+
+  const handleBackToLogin = () => {
+    setVerificationStep(false);
+    setVerificationCode("");
+    setAdminId("");
+    setVerificationEmail("");
+    setAttemptsRemaining(null);
+    setError("");
+    setMessage("");
+    setResendCountdown(60);
+    setCanResend(false);
+  };
+
+  // ===================================================
+  // VERIFICATION SCREEN
+  // ===================================================
+
+  if (verificationStep) {
+    return (
+      <div
+        className={styles.container}
+        style={{
+          backgroundImage: `url(${bg})`,
+        }}
+      >
+        <div className={styles.overlay} />
+
+        <div className={`${styles.card} ${styles.verificationCard}`}>
+          {/* BRAND */}
+          <div className={styles.brand}>
+            <img
+              src={logo}
+              alt="St Mary St Gabriel Church"
+              className={styles.logo}
+            />
+
+            <h1>
+              <span>⛪ St Mary St Gabriel</span>
+            </h1>
+
+            <h2>Ethiopian Orthodox Tewahedo Church</h2>
+
+            <p>Finance Administration Portal</p>
+          </div>
+
+          {/* VERIFICATION HEADER */}
+          <div className={styles.verificationHeader}>
+            <div className={styles.verificationIcon}>
+              <FiMail />
+            </div>
+
+            <div>
+              <h3>Verify Your Finance Login</h3>
+              <p>We sent a 6-digit confirmation code to your email.</p>
+            </div>
+          </div>
+
+          {/* EMAIL */}
+          <div className={styles.emailNotice}>
+            <FiMail />
+            <span>{maskEmail(verificationEmail)}</span>
+          </div>
+
+          {/* ERROR */}
+          {error && (
+            <div className={styles.error} role="alert">
+              {error}
+            </div>
+          )}
+
+          {/* SUCCESS MESSAGE */}
+          {message && !error && (
+            <div className={styles.success} role="status">
+              <FiCheckCircle />
+              <span>{message}</span>
+            </div>
+          )}
+
+          {/* VERIFICATION FORM */}
+          <form className={styles.verificationForm} onSubmit={handleVerifyCode}>
+            <div className={styles.verificationInputGroup}>
+              <label htmlFor="finance-verification-code">
+                Confirmation Code
+              </label>
+
+              <div className={styles.verificationInputWrapper}>
+                <FiKey />
+
+                <input
+                  ref={verificationInputRef}
+                  id="finance-verification-code"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  autoComplete="one-time-code"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  maxLength={6}
+                  placeholder="000000"
+                  value={verificationCode}
+                  onChange={handleVerificationCodeChange}
+                  aria-label="6-digit finance verification code"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className={styles.codeHint}>
+                Enter the 6-digit code from your email.
+              </div>
+            </div>
+
+            {/* ATTEMPTS REMAINING */}
+            {typeof attemptsRemaining === "number" && (
+              <div className={styles.attemptsNotice}>
+                <FiShield />
+
+                <span>
+                  {attemptsRemaining} attempt
+                  {attemptsRemaining === 1 ? "" : "s"} remaining
+                </span>
+              </div>
+            )}
+
+            {/* VERIFY BUTTON */}
+            <button
+              className={styles.loginBtn}
+              disabled={loading || verificationCode.length !== 6}
+              type="submit"
+            >
+              {loading ? (
+                <>
+                  <span className={styles.spinner} />
+                  Verifying...
+                </>
+              ) : (
+                <>
+                  <FiCheckCircle />
+                  Verify & Continue
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* RESEND */}
+          <div className={styles.resendSection}>
+            <span>Didn't receive the code?</span>
+
+            {canResend ? (
+              <button
+                type="button"
+                className={styles.resendBtn}
+                onClick={handleResendCode}
+                disabled={resending}
+              >
+                {resending ? (
+                  <>
+                    <span className={styles.smallSpinner} />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <FiRefreshCw />
+                    Resend Code
+                  </>
+                )}
+              </button>
+            ) : (
+              <span className={styles.resendTimer}>
+                <FiClock />
+                Resend in <strong>{resendCountdown}s</strong>
+              </span>
+            )}
+          </div>
+
+          {/* BACK */}
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={handleBackToLogin}
+          >
+            <FiArrowLeft />
+            Back to login
+          </button>
+
+          {/* SECURITY */}
+          <div className={styles.security}>
+            <FiShield />
+            <span>Secure Finance Administrator Verification</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ===================================================
+  // NORMAL FINANCE LOGIN SCREEN
+  // ===================================================
 
   return (
     <div
@@ -117,21 +603,10 @@ export default function Login() {
         backgroundImage: `url(${bg})`,
       }}
     >
-      {/* ==========================================
-          BACKGROUND OVERLAY
-      ========================================== */}
-
       <div className={styles.overlay} />
 
-      {/* ==========================================
-          LOGIN CARD
-      ========================================== */}
-
       <div className={styles.card}>
-        {/* ==========================================
-            BRAND
-        ========================================== */}
-
+        {/* BRAND */}
         <div className={styles.brand}>
           <img
             src={logo}
@@ -148,25 +623,20 @@ export default function Login() {
           <p>Finance Administration Portal</p>
         </div>
 
-        {/* ==========================================
-            ERROR
-        ========================================== */}
-
+        {/* ERROR */}
         {error && (
-          <div className={styles.error} role="alert" aria-live="polite">
+          <div className={styles.error} role="alert">
             {error}
           </div>
         )}
 
-        {/* ==========================================
-            LOGIN FORM
-        ========================================== */}
-
+        {/* LOGIN FORM */}
         <form className={styles.form} onSubmit={handleSubmit}>
           {/* EMAIL */}
-
           <div className={styles.inputGroup}>
-            <label htmlFor="finance-admin-email">Email Address</label>
+            <label htmlFor="finance-admin-email">
+              Finance Admin Email Address
+            </label>
 
             <input
               id="finance-admin-email"
@@ -177,12 +647,12 @@ export default function Login() {
               autoComplete="email"
               autoCapitalize="none"
               spellCheck={false}
+              disabled={loading}
               required
             />
           </div>
 
           {/* PASSWORD */}
-
           <div className={styles.inputGroup}>
             <label htmlFor="finance-admin-password">Password</label>
 
@@ -194,6 +664,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
+                disabled={loading}
                 required
               />
 
@@ -203,6 +674,7 @@ export default function Login() {
                 onClick={() => setShowPassword((previous) => !previous)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
                 aria-pressed={showPassword}
+                disabled={loading}
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
@@ -210,13 +682,13 @@ export default function Login() {
           </div>
 
           {/* REMEMBER ME */}
-
           <div className={styles.options}>
             <label className={styles.rememberLabel}>
               <input
                 type="checkbox"
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
+                disabled={loading}
               />
 
               <span>Remember me</span>
@@ -224,30 +696,30 @@ export default function Login() {
           </div>
 
           {/* LOGIN BUTTON */}
-
           <button className={styles.loginBtn} disabled={loading} type="submit">
             {loading ? (
-              "Signing in..."
+              <>
+                <span className={styles.spinner} />
+                Sending code...
+              </>
             ) : (
               <>
                 <FiLogIn />
-                Login
+                Continue to Finance Login
               </>
             )}
           </button>
 
           {/* CREATE FINANCE ADMIN */}
-
-          <Link to="/admin/create-admin" className={styles.createBtn}>
+          <Link to="/finance/create-admin" className={styles.createBtn}>
             <FiUserPlus />
             Create Finance Admin
           </Link>
 
           {/* SECURITY */}
-
           <div className={styles.security}>
             <FiShield />
-            Finance Administrator Access Only
+            <span>Finance Administrator Access Only</span>
           </div>
         </form>
       </div>

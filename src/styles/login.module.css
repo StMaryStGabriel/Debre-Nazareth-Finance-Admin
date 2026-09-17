@@ -1,10 +1,11 @@
 /* ============================================================
-   FINANCE ADMIN LOGIN PAGE
-   St. Mary & St. Gabriel
+   LOGIN PAGE
+   St. Mary & St. Gabriel Main Administration
+   Modern + Responsive + Email Verification
 ============================================================ */
 
 /* ============================================================
-   BOX SIZING
+   GLOBAL BOX SIZING
 ============================================================ */
 
 .container,
@@ -23,7 +24,6 @@
   min-height: 100dvh;
 
   display: flex;
-
   align-items: center;
   justify-content: center;
 
@@ -33,7 +33,7 @@
 
   position: relative;
 
-  padding: 20px;
+  padding: 24px;
 
   font-family:
     Inter,
@@ -47,11 +47,6 @@
 
   overflow-x: hidden;
 
-  /*
-    Creates a dedicated stacking context.
-    This prevents background layers from
-    interfering with the login form.
-  */
   isolation: isolate;
 }
 
@@ -61,20 +56,14 @@
 
 .overlay {
   position: absolute;
-
   inset: 0;
 
   background: linear-gradient(
     135deg,
-    rgba(91, 26, 26, 0.85),
-    rgba(15, 23, 42, 0.9)
+    rgba(91, 26, 26, 0.88),
+    rgba(15, 23, 42, 0.92)
   );
 
-  /*
-    IMPORTANT:
-    Overlay is visual only.
-    It cannot block mouse/touch interaction.
-  */
   pointer-events: none;
 
   z-index: 0;
@@ -90,25 +79,48 @@
   z-index: 1;
 
   width: 100%;
-
   max-width: 450px;
 
-  background: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.15),
+    rgba(255, 255, 255, 0.08)
+  );
 
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 
   border-radius: 30px;
 
   padding: 40px;
 
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 
   border: 1px solid rgba(255, 255, 255, 0.2);
 
-  color: white;
+  color: #ffffff;
 
   isolation: isolate;
+
+  animation: cardEnter 0.45s ease both;
+}
+
+/* ============================================================
+   CARD ANIMATION
+============================================================ */
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ============================================================
@@ -143,7 +155,9 @@
 
   border: 4px solid #d4af37;
 
-  box-shadow: 0 10px 30px rgba(212, 175, 55, 0.4);
+  box-shadow:
+    0 10px 30px rgba(212, 175, 55, 0.38),
+    0 0 0 6px rgba(212, 175, 55, 0.08);
 }
 
 /* ============================================================
@@ -153,12 +167,14 @@
 .brand h1 {
   font-size: 28px;
 
-  line-height: 1.2;
-
-  margin-top: 15px;
+  margin-top: 16px;
   margin-bottom: 0;
 
-  color: #d4af37;
+  color: #ffd966;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.3px;
 }
 
 .brand h1 span {
@@ -166,45 +182,58 @@
 }
 
 /* ============================================================
-   CHURCH DESCRIPTION
+   CHURCH NAME
 ============================================================ */
 
 .brand h2 {
-  font-size: 16px;
+  font-size: 15px;
 
   line-height: 1.5;
 
   margin-top: 10px;
   margin-bottom: 0;
+
+  font-weight: 600;
+
+  color: rgba(255, 255, 255, 0.94);
 }
 
 /* ============================================================
-   PORTAL DESCRIPTION
+   PORTAL TEXT
 ============================================================ */
 
 .brand p {
-  opacity: 0.8;
+  opacity: 0.76;
 
   margin-top: 8px;
   margin-bottom: 0;
 
-  line-height: 1.4;
+  font-size: 14px;
+
+  color: #ffffff;
 }
 
 /* ============================================================
-   ERROR
+   ERROR MESSAGE
 ============================================================ */
 
 .error {
   position: relative;
 
-  z-index: 3;
+  z-index: 2;
 
-  background: #dc2626;
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 44px;
+
+  background: rgba(220, 38, 38, 0.94);
 
   color: #ffffff;
 
-  padding: 12px 14px;
+  padding: 11px 14px;
 
   border-radius: 12px;
 
@@ -212,11 +241,82 @@
 
   margin-bottom: 20px;
 
-  line-height: 1.4;
+  line-height: 1.45;
 
-  font-size: 14px;
+  font-size: 13px;
+
+  font-weight: 600;
 
   overflow-wrap: anywhere;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+
+  animation: messageEnter 0.25s ease both;
+}
+
+/* ============================================================
+   SUCCESS MESSAGE
+============================================================ */
+
+.success {
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 9px;
+
+  min-height: 44px;
+
+  padding: 11px 14px;
+
+  margin-bottom: 20px;
+
+  border-radius: 12px;
+
+  background: rgba(22, 163, 74, 0.16);
+
+  border: 1px solid rgba(134, 239, 172, 0.34);
+
+  color: #ecfdf5;
+
+  font-size: 13px;
+
+  line-height: 1.45;
+
+  font-weight: 600;
+
+  text-align: center;
+
+  animation: messageEnter 0.25s ease both;
+}
+
+.success svg {
+  width: 18px;
+  height: 18px;
+
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   MESSAGE ANIMATION
+============================================================ */
+
+@keyframes messageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================================
@@ -224,11 +324,11 @@
 ============================================================ */
 
 .form {
-  width: 100%;
-
   position: relative;
 
   z-index: 2;
+
+  width: 100%;
 }
 
 /* ============================================================
@@ -260,13 +360,11 @@
 
   cursor: text;
 
-  position: relative;
-
-  z-index: 2;
+  font-size: 14px;
 }
 
 /* ============================================================
-   INPUT
+   TEXT / EMAIL / PASSWORD INPUTS
 ============================================================ */
 
 .inputGroup input {
@@ -276,13 +374,13 @@
 
   min-width: 0;
 
-  height: 50px;
+  height: 52px;
 
-  padding: 15px;
+  padding: 14px 15px;
 
-  border-radius: 15px;
+  border-radius: 14px;
 
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 
   background: #ffffff;
 
@@ -308,11 +406,22 @@
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
-    background-color 0.2s ease;
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 /* ============================================================
-   PLACEHOLDER
+   DISABLED INPUT
+============================================================ */
+
+.inputGroup input:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.72;
+}
+
+/* ============================================================
+   INPUT PLACEHOLDER
 ============================================================ */
 
 .inputGroup input::placeholder {
@@ -328,11 +437,11 @@
 .inputGroup input:focus {
   border-color: #d4af37;
 
-  background: #ffffff;
-
   box-shadow:
-    0 0 0 3px rgba(212, 175, 55, 0.25),
-    0 5px 18px rgba(0, 0, 0, 0.12);
+    0 0 0 3px rgba(212, 175, 55, 0.22),
+    0 6px 20px rgba(0, 0, 0, 0.12);
+
+  background: #ffffff;
 }
 
 /* ============================================================
@@ -364,16 +473,13 @@
 .eye {
   position: absolute;
 
-  right: 8px;
-
+  right: 7px;
   top: 50%;
 
   transform: translateY(-50%);
 
   width: 40px;
   height: 40px;
-
-  padding: 0;
 
   display: flex;
 
@@ -394,24 +500,37 @@
 
   z-index: 5;
 
+  padding: 0;
+
   appearance: none;
   -webkit-appearance: none;
 
   transition:
     background-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
-.eye:hover {
+.eye:hover:not(:disabled) {
   background: rgba(91, 26, 26, 0.08);
 
   color: #742222;
+}
+
+.eye:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .eye:focus-visible {
   outline: 2px solid #d4af37;
 
   outline-offset: 2px;
+}
+
+.eye:disabled {
+  cursor: not-allowed;
+
+  opacity: 0.55;
 }
 
 .eye svg {
@@ -422,7 +541,7 @@
 }
 
 /* ============================================================
-   REMEMBER ME
+   REMEMBER ME OPTIONS
 ============================================================ */
 
 .options {
@@ -457,7 +576,7 @@
 }
 
 /* ============================================================
-   CHECKBOX
+   REMEMBER ME CHECKBOX
 ============================================================ */
 
 .rememberLabel input {
@@ -474,15 +593,15 @@
 }
 
 /* ============================================================
-   LOGIN BUTTON
+   PRIMARY BUTTON
 ============================================================ */
 
 .loginBtn {
   width: 100%;
 
-  min-height: 50px;
+  min-height: 52px;
 
-  padding: 15px;
+  padding: 14px 18px;
 
   border: none;
 
@@ -494,7 +613,7 @@
 
   font-weight: 800;
 
-  font-size: 16px;
+  font-size: 15px;
 
   cursor: pointer;
 
@@ -509,33 +628,23 @@
 
   z-index: 3;
 
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+
   transition:
     transform 0.2s ease,
     box-shadow 0.2s ease,
     opacity 0.2s ease;
 }
 
-/* ============================================================
-   LOGIN BUTTON HOVER
-============================================================ */
-
 .loginBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
 }
-
-/* ============================================================
-   LOGIN BUTTON ACTIVE
-============================================================ */
 
 .loginBtn:active:not(:disabled) {
   transform: translateY(0);
 }
-
-/* ============================================================
-   LOGIN BUTTON FOCUS
-============================================================ */
 
 .loginBtn:focus-visible {
   outline: 2px solid #ffffff;
@@ -543,19 +652,13 @@
   outline-offset: 3px;
 }
 
-/* ============================================================
-   LOGIN BUTTON DISABLED
-============================================================ */
-
 .loginBtn:disabled {
-  opacity: 0.6;
+  opacity: 0.58;
 
   cursor: not-allowed;
-}
 
-/* ============================================================
-   LOGIN ICON
-============================================================ */
+  box-shadow: none;
+}
 
 .loginBtn svg {
   width: 18px;
@@ -565,7 +668,7 @@
 }
 
 /* ============================================================
-   CREATE FINANCE ADMIN
+   CREATE MAIN ADMIN BUTTON
 ============================================================ */
 
 .createBtn {
@@ -573,7 +676,7 @@
 
   width: 100%;
 
-  min-height: 48px;
+  min-height: 50px;
 
   padding: 14px;
 
@@ -581,7 +684,7 @@
 
   border: 1px solid #d4af37;
 
-  color: #d4af37;
+  color: #ffd966;
 
   text-decoration: none;
 
@@ -594,19 +697,20 @@
 
   font-weight: 700;
 
+  font-size: 14px;
+
   position: relative;
 
   z-index: 3;
 
+  background: rgba(255, 255, 255, 0.025);
+
   transition:
     background-color 0.2s ease,
     color 0.2s ease,
-    transform 0.2s ease;
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
-
-/* ============================================================
-   CREATE BUTTON HOVER
-============================================================ */
 
 .createBtn:hover {
   background: #d4af37;
@@ -614,21 +718,15 @@
   color: #5b1a1a;
 
   transform: translateY(-1px);
-}
 
-/* ============================================================
-   CREATE BUTTON FOCUS
-============================================================ */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.16);
+}
 
 .createBtn:focus-visible {
   outline: 2px solid #ffffff;
 
   outline-offset: 3px;
 }
-
-/* ============================================================
-   CREATE BUTTON ICON
-============================================================ */
 
 .createBtn svg {
   width: 18px;
@@ -638,7 +736,7 @@
 }
 
 /* ============================================================
-   SECURITY
+   SECURITY MESSAGE
 ============================================================ */
 
 .security {
@@ -646,9 +744,9 @@
 
   text-align: center;
 
-  font-size: 13px;
+  font-size: 12px;
 
-  opacity: 0.8;
+  color: rgba(255, 255, 255, 0.78);
 
   display: flex;
 
@@ -667,10 +765,534 @@
   height: 16px;
 
   flex-shrink: 0;
+
+  color: #ffd966;
 }
 
 /* ============================================================
-   CHROME / EDGE / SAFARI AUTOFILL
+   ================================================
+   EMAIL VERIFICATION SCREEN
+   ================================================
+============================================================ */
+
+/* ============================================================
+   VERIFICATION CARD
+============================================================ */
+
+.verificationCard {
+  max-width: 470px;
+}
+
+/* ============================================================
+   VERIFICATION HEADER
+============================================================ */
+
+.verificationHeader {
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+
+  margin-bottom: 18px;
+
+  padding: 16px 17px;
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 16px;
+
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ============================================================
+   VERIFICATION ICON
+============================================================ */
+
+.verificationIcon {
+  width: 46px;
+  height: 46px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 13px;
+
+  background: rgba(255, 217, 102, 0.13);
+
+  border: 1px solid rgba(255, 217, 102, 0.26);
+
+  color: #ffd966;
+}
+
+.verificationIcon svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ============================================================
+   VERIFICATION HEADER TEXT
+============================================================ */
+
+.verificationHeader h3 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 18px;
+
+  line-height: 1.25;
+}
+
+.verificationHeader p {
+  margin: 5px 0 0;
+
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+
+  line-height: 1.5;
+}
+
+/* ============================================================
+   EMAIL NOTICE
+============================================================ */
+
+.emailNotice {
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  margin-bottom: 20px;
+
+  padding: 10px 14px;
+
+  border-radius: 10px;
+
+  background: rgba(212, 175, 55, 0.08);
+
+  border: 1px solid rgba(212, 175, 55, 0.18);
+
+  color: #ffe9a8;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  overflow-wrap: anywhere;
+}
+
+.emailNotice svg {
+  width: 16px;
+  height: 16px;
+
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   VERIFICATION FORM
+============================================================ */
+
+.verificationForm {
+  width: 100%;
+}
+
+/* ============================================================
+   VERIFICATION INPUT GROUP
+============================================================ */
+
+.verificationInputGroup {
+  width: 100%;
+
+  margin-bottom: 18px;
+}
+
+.verificationInputGroup label {
+  display: block;
+
+  margin-bottom: 9px;
+
+  color: #ffffff;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  text-align: center;
+}
+
+/* ============================================================
+   VERIFICATION INPUT WRAPPER
+============================================================ */
+
+.verificationInputWrapper {
+  position: relative;
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+}
+
+.verificationInputWrapper > svg {
+  position: absolute;
+
+  left: 17px;
+
+  width: 19px;
+  height: 19px;
+
+  color: #7a1f1f;
+
+  pointer-events: none;
+
+  z-index: 2;
+}
+
+/* ============================================================
+   VERIFICATION CODE INPUT
+============================================================ */
+
+.verificationInputWrapper input {
+  display: block;
+
+  width: 100%;
+
+  height: 68px;
+
+  padding: 10px 45px;
+
+  border-radius: 16px;
+
+  border: 2px solid rgba(212, 175, 55, 0.42);
+
+  background: #ffffff;
+
+  color: #5b1a1a;
+
+  outline: none;
+
+  text-align: center;
+
+  font-size: 29px;
+
+  font-weight: 800;
+
+  letter-spacing: 9px;
+
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  line-height: 1;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.verificationInputWrapper input::placeholder {
+  color: #c6b9a7;
+
+  opacity: 1;
+
+  letter-spacing: 8px;
+}
+
+.verificationInputWrapper input:focus {
+  border-color: #d4af37;
+
+  box-shadow:
+    0 0 0 4px rgba(212, 175, 55, 0.2),
+    0 10px 25px rgba(0, 0, 0, 0.14);
+
+  transform: translateY(-1px);
+}
+
+.verificationInputWrapper input:disabled {
+  opacity: 0.65;
+
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   CODE HINT
+============================================================ */
+
+.codeHint {
+  margin-top: 8px;
+
+  color: rgba(255, 255, 255, 0.62);
+
+  text-align: center;
+
+  font-size: 11px;
+
+  line-height: 1.5;
+}
+
+/* ============================================================
+   ATTEMPTS NOTICE
+============================================================ */
+
+.attemptsNotice {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  margin: 0 0 15px;
+
+  padding: 9px 12px;
+
+  border-radius: 10px;
+
+  background: rgba(245, 158, 11, 0.12);
+
+  border: 1px solid rgba(245, 158, 11, 0.22);
+
+  color: #ffe2a0;
+
+  font-size: 12px;
+
+  font-weight: 600;
+
+  text-align: center;
+}
+
+.attemptsNotice svg {
+  width: 15px;
+  height: 15px;
+
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   RESEND SECTION
+============================================================ */
+
+.resendSection {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+  margin-top: 19px;
+
+  color: rgba(255, 255, 255, 0.68);
+
+  font-size: 12px;
+
+  text-align: center;
+}
+
+/* ============================================================
+   RESEND BUTTON
+============================================================ */
+
+.resendBtn {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 6px;
+
+  padding: 4px 6px;
+
+  border: none;
+
+  background: transparent;
+
+  color: #ffd966;
+
+  font-size: 12px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  border-radius: 6px;
+
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.resendBtn:hover:not(:disabled) {
+  color: #ffffff;
+
+  background: rgba(255, 217, 102, 0.09);
+}
+
+.resendBtn:focus-visible {
+  outline: 2px solid #ffd966;
+
+  outline-offset: 2px;
+}
+
+.resendBtn:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+}
+
+.resendBtn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================================
+   RESEND TIMER
+============================================================ */
+
+.resendTimer {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.resendTimer svg {
+  width: 14px;
+  height: 14px;
+
+  color: #ffd966;
+}
+
+.resendTimer strong {
+  color: #ffd966;
+
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   BACK BUTTON
+============================================================ */
+
+.backBtn {
+  width: 100%;
+
+  margin-top: 17px;
+
+  padding: 9px 12px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border: none;
+
+  background: transparent;
+
+  color: rgba(255, 255, 255, 0.7);
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  border-radius: 8px;
+
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.backBtn:hover {
+  color: #ffffff;
+
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.backBtn:focus-visible {
+  outline: 2px solid #ffd966;
+
+  outline-offset: 2px;
+}
+
+.backBtn svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ============================================================
+   LOADING SPINNER
+============================================================ */
+
+.spinner {
+  width: 18px;
+  height: 18px;
+
+  border-radius: 50%;
+
+  border: 2px solid rgba(91, 26, 26, 0.25);
+
+  border-top-color: #5b1a1a;
+
+  animation: spin 0.7s linear infinite;
+
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   SMALL SPINNER
+============================================================ */
+
+.smallSpinner {
+  width: 13px;
+  height: 13px;
+
+  border-radius: 50%;
+
+  border: 2px solid rgba(255, 217, 102, 0.25);
+
+  border-top-color: #ffd966;
+
+  animation: spin 0.7s linear infinite;
+
+  flex: 0 0 auto;
+}
+
+/* ============================================================
+   SPINNER ANIMATION
+============================================================ */
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   AUTOFILL FIX
 ============================================================ */
 
 .inputGroup input:-webkit-autofill,
@@ -690,8 +1312,6 @@
 @media (max-width: 500px) {
   .container {
     padding: 15px;
-
-    align-items: center;
   }
 
   .card {
@@ -699,9 +1319,13 @@
 
     max-width: 450px;
 
-    padding: 25px;
+    padding: 27px 22px;
 
     border-radius: 24px;
+  }
+
+  .verificationCard {
+    max-width: 450px;
   }
 
   .brand {
@@ -709,8 +1333,8 @@
   }
 
   .logo {
-    width: 85px;
-    height: 85px;
+    width: 82px;
+    height: 82px;
   }
 
   .brand h1 {
@@ -718,25 +1342,72 @@
   }
 
   .brand h2 {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .brand p {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .inputGroup input {
-    height: 50px;
+    height: 51px;
 
     font-size: 16px;
   }
 
   .loginBtn {
-    min-height: 50px;
+    min-height: 51px;
+
+    font-size: 15px;
   }
 
   .createBtn {
-    min-height: 48px;
+    min-height: 49px;
+  }
+
+  .verificationHeader {
+    padding: 14px;
+
+    gap: 11px;
+  }
+
+  .verificationIcon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .verificationHeader h3 {
+    font-size: 16px;
+  }
+
+  .verificationHeader p {
+    font-size: 11px;
+  }
+
+  .verificationInputWrapper input {
+    height: 62px;
+
+    font-size: 25px;
+
+    letter-spacing: 7px;
+
+    padding-left: 40px;
+    padding-right: 30px;
+  }
+
+  .verificationInputWrapper input::placeholder {
+    letter-spacing: 6px;
+  }
+
+  .verificationInputWrapper > svg {
+    left: 14px;
+
+    width: 17px;
+    height: 17px;
+  }
+
+  .emailNotice {
+    font-size: 12px;
   }
 }
 
@@ -750,26 +1421,62 @@
   }
 
   .card {
-    padding: 20px;
+    padding: 22px 17px;
 
     border-radius: 20px;
   }
 
   .logo {
-    width: 75px;
-    height: 75px;
+    width: 73px;
+    height: 73px;
   }
 
   .brand h1 {
-    font-size: 20px;
+    font-size: 19px;
   }
 
   .brand h2 {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .brand p {
-    font-size: 13px;
+    font-size: 12px;
+  }
+
+  .verificationHeader {
+    padding: 12px;
+  }
+
+  .verificationIcon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .verificationHeader h3 {
+    font-size: 15px;
+  }
+
+  .verificationHeader p {
+    font-size: 10px;
+  }
+
+  .verificationInputWrapper input {
+    height: 58px;
+
+    font-size: 22px;
+
+    letter-spacing: 5px;
+
+    padding-left: 35px;
+    padding-right: 20px;
+  }
+
+  .verificationInputWrapper input::placeholder {
+    letter-spacing: 4px;
+  }
+
+  .resendSection {
+    font-size: 11px;
   }
 }
 
@@ -778,10 +1485,20 @@
 ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
+  .card,
+  .error,
+  .success,
   .inputGroup input,
   .eye,
   .loginBtn,
-  .createBtn {
-    transition: none;
+  .createBtn,
+  .verificationInputWrapper input,
+  .resendBtn,
+  .backBtn,
+  .spinner,
+  .smallSpinner {
+    animation: none !important;
+
+    transition: none !important;
   }
 }
