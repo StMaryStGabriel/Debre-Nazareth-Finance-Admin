@@ -711,7 +711,7 @@ export default function FinanceLogin() {
           </button>
 
           {/* CREATE FINANCE ADMIN */}
-          <Link to="/finance/create-admin" className={styles.createBtn}>
+          <Link to="/admin/create-admin" className={styles.createBtn}>
             <FiUserPlus />
             Create Finance Admin
           </Link>
