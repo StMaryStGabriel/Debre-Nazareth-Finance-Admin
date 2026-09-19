@@ -1,21 +1,46 @@
 import { Navigate } from "react-router-dom";
 
 export default function ProtectedRoute({ children }) {
-  const token = localStorage.getItem("adminToken");
+  // ===================================================
+  // FINANCE ADMIN SESSION
+  // Uses Finance-specific localStorage keys.
+  // ===================================================
 
-  const expiry = localStorage.getItem("adminExpiry");
+  const token = localStorage.getItem("financeAdminToken");
+
+  const expiry = localStorage.getItem("financeAdminExpiry");
+
+  // ===================================================
+  // NO FINANCE TOKEN
+  // ===================================================
 
   if (!token) {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (expiry && Date.now() > Number(expiry)) {
-    localStorage.removeItem("adminToken");
+  // ===================================================
+  // FINANCE SESSION EXPIRED
+  // ===================================================
 
-    localStorage.removeItem("adminExpiry");
+  if (expiry && Date.now() > Number(expiry)) {
+    localStorage.removeItem("financeAdminToken");
+
+    localStorage.removeItem("financeAdminName");
+
+    localStorage.removeItem("financeAdminEmail");
+
+    localStorage.removeItem("financeAdminId");
+
+    localStorage.removeItem("financeAdminRole");
+
+    localStorage.removeItem("financeAdminExpiry");
 
     return <Navigate to="/admin/login" replace />;
   }
+
+  // ===================================================
+  // AUTHENTICATED FINANCE ADMIN
+  // ===================================================
 
   return children;
 }

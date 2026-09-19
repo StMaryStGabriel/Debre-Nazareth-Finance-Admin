@@ -137,33 +137,38 @@ export default function FinanceLogin() {
   }, [verificationStep]);
 
   // ===================================================
-  // CLEAR OLD ADMIN SESSION
+  // CLEAR FINANCE ADMIN SESSION
+  // IMPORTANT:
+  // Only Finance-specific keys are cleared.
+  // Main Admin localStorage is NOT touched.
   // ===================================================
 
-  const clearAdminSession = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminName");
-    localStorage.removeItem("adminEmail");
-    localStorage.removeItem("adminId");
-    localStorage.removeItem("adminRole");
-    localStorage.removeItem("adminExpiry");
+  const clearFinanceAdminSession = () => {
+    localStorage.removeItem("financeAdminToken");
+    localStorage.removeItem("financeAdminName");
+    localStorage.removeItem("financeAdminEmail");
+    localStorage.removeItem("financeAdminId");
+    localStorage.removeItem("financeAdminRole");
+    localStorage.removeItem("financeAdminExpiry");
   };
 
   // ===================================================
   // SAVE FINANCE ADMIN SESSION
+  // IMPORTANT:
+  // Finance now has completely separate localStorage keys.
   // ===================================================
 
   const saveFinanceAdminSession = (data) => {
-    clearAdminSession();
+    clearFinanceAdminSession();
 
-    localStorage.setItem("adminToken", data.token);
-    localStorage.setItem("adminName", data.name || "");
-    localStorage.setItem("adminEmail", data.email || "");
-    localStorage.setItem("adminId", data._id);
-    localStorage.setItem("adminRole", data.role || "finance");
+    localStorage.setItem("financeAdminToken", data.token);
+    localStorage.setItem("financeAdminName", data.name || "");
+    localStorage.setItem("financeAdminEmail", data.email || "");
+    localStorage.setItem("financeAdminId", data._id);
+    localStorage.setItem("financeAdminRole", data.role || "finance");
 
     localStorage.setItem(
-      "adminExpiry",
+      "financeAdminExpiry",
       remember
         ? Date.now() + 7 * 24 * 60 * 60 * 1000
         : Date.now() + 24 * 60 * 60 * 1000,
@@ -182,6 +187,7 @@ export default function FinanceLogin() {
 
     if (!email.trim() || !password) {
       setError("Please enter your finance administrator email and password.");
+
       return;
     }
 
@@ -216,6 +222,7 @@ export default function FinanceLogin() {
         );
 
         setVerificationStep(true);
+
         startResendCountdown();
 
         return;
@@ -227,6 +234,7 @@ export default function FinanceLogin() {
 
       if (!res.data?.token) {
         setError("No authentication token received.");
+
         return;
       }
 
@@ -236,10 +244,8 @@ export default function FinanceLogin() {
 
       saveFinanceAdminSession(res.data);
 
-      // IMPORTANT:
       // App.jsx uses BrowserRouter basename="/finance".
-      // Therefore this must be /admin/dashboard,
-      // not /finance/dashboard.
+      // Therefore this must be /admin/dashboard.
       navigate("/admin/dashboard");
     } catch (err) {
       console.error("Finance admin login error:", err);
@@ -332,12 +338,10 @@ export default function FinanceLogin() {
       // ==============================================
       // GO TO FINANCE DASHBOARD
       // ==============================================
+
+      // BrowserRouter uses basename="/finance".
       //
-      // IMPORTANT:
-      // BrowserRouter in App.jsx uses:
-      // basename="/finance"
-      //
-      // Therefore:
+      // This:
       // navigate("/admin/dashboard")
       //
       // becomes:
@@ -345,8 +349,6 @@ export default function FinanceLogin() {
       //
       // DO NOT use:
       // navigate("/finance/dashboard")
-      //
-      // because that would create the wrong route.
       // ==============================================
 
       navigate("/admin/dashboard");
@@ -417,6 +419,7 @@ export default function FinanceLogin() {
 
       if (typeof responseData?.retryAfterSeconds === "number") {
         setResendCountdown(responseData.retryAfterSeconds);
+
         setCanResend(false);
       }
     } finally {

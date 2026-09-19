@@ -8,9 +8,16 @@ const api = axios.create({
   },
 });
 
+// =====================================================
+// FINANCE ADMIN AUTHORIZATION
+// Uses Finance-specific localStorage key.
+// This prevents Main Admin and Finance Admin
+// sessions from overwriting each other.
+// =====================================================
+
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("adminToken");
+    const token = localStorage.getItem("financeAdminToken");
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -21,12 +28,29 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// =====================================================
+// FINANCE ADMIN AUTH ERROR HANDLING
+// =====================================================
+
 api.interceptors.response.use(
   (response) => response,
 
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("adminToken");
+      // Remove ONLY Finance Admin session.
+      // Do NOT touch Main Admin session.
+
+      localStorage.removeItem("financeAdminToken");
+
+      localStorage.removeItem("financeAdminName");
+
+      localStorage.removeItem("financeAdminEmail");
+
+      localStorage.removeItem("financeAdminId");
+
+      localStorage.removeItem("financeAdminRole");
+
+      localStorage.removeItem("financeAdminExpiry");
 
       window.location.href = "/finance/admin/login";
     }
