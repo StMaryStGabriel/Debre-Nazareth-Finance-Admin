@@ -4,6 +4,7 @@
 // =====================================================
 
 import { useEffect, useRef, useState } from "react";
+
 import { useNavigate, Link } from "react-router-dom";
 
 import {
@@ -21,9 +22,11 @@ import {
 } from "react-icons/fi";
 
 import api from "../services/api";
+
 import styles from "../styles/login.module.css";
 
 import logo from "../assets/images/logo.jpg";
+
 import bg from "../assets/images/bg.jpg";
 
 export default function FinanceLogin() {
@@ -58,6 +61,7 @@ export default function FinanceLogin() {
   const [resending, setResending] = useState(false);
 
   const navigate = useNavigate();
+
   const verificationInputRef = useRef(null);
 
   // ===================================================
@@ -231,7 +235,12 @@ export default function FinanceLogin() {
       // ==============================================
 
       saveFinanceAdminSession(res.data);
-      navigate("/finance/dashboard");
+
+      // IMPORTANT:
+      // App.jsx uses BrowserRouter basename="/finance".
+      // Therefore this must be /admin/dashboard,
+      // not /finance/dashboard.
+      navigate("/admin/dashboard");
     } catch (err) {
       console.error("Finance admin login error:", err);
 
@@ -270,7 +279,9 @@ export default function FinanceLogin() {
 
     if (!/^\d{6}$/.test(verificationCode)) {
       setError("Please enter the 6-digit verification code.");
+
       verificationInputRef.current?.focus();
+
       return;
     }
 
@@ -278,6 +289,7 @@ export default function FinanceLogin() {
       setError(
         "Your verification session is no longer available. Please log in again.",
       );
+
       return;
     }
 
@@ -297,6 +309,7 @@ export default function FinanceLogin() {
         setError(
           "Verification succeeded, but no authentication token was received.",
         );
+
         return;
       }
 
@@ -319,8 +332,24 @@ export default function FinanceLogin() {
       // ==============================================
       // GO TO FINANCE DASHBOARD
       // ==============================================
+      //
+      // IMPORTANT:
+      // BrowserRouter in App.jsx uses:
+      // basename="/finance"
+      //
+      // Therefore:
+      // navigate("/admin/dashboard")
+      //
+      // becomes:
+      // /finance/admin/dashboard
+      //
+      // DO NOT use:
+      // navigate("/finance/dashboard")
+      //
+      // because that would create the wrong route.
+      // ==============================================
 
-      navigate("/finance/dashboard");
+      navigate("/admin/dashboard");
     } catch (err) {
       console.error("Finance admin verification error:", err);
 
@@ -427,6 +456,7 @@ export default function FinanceLogin() {
 
         <div className={`${styles.card} ${styles.verificationCard}`}>
           {/* BRAND */}
+
           <div className={styles.brand}>
             <img
               src={logo}
@@ -444,6 +474,7 @@ export default function FinanceLogin() {
           </div>
 
           {/* VERIFICATION HEADER */}
+
           <div className={styles.verificationHeader}>
             <div className={styles.verificationIcon}>
               <FiMail />
@@ -451,17 +482,21 @@ export default function FinanceLogin() {
 
             <div>
               <h3>Verify Your Finance Login</h3>
+
               <p>We sent a 6-digit confirmation code to your email.</p>
             </div>
           </div>
 
           {/* EMAIL */}
+
           <div className={styles.emailNotice}>
             <FiMail />
+
             <span>{maskEmail(verificationEmail)}</span>
           </div>
 
           {/* ERROR */}
+
           {error && (
             <div className={styles.error} role="alert">
               {error}
@@ -469,14 +504,17 @@ export default function FinanceLogin() {
           )}
 
           {/* SUCCESS MESSAGE */}
+
           {message && !error && (
             <div className={styles.success} role="status">
               <FiCheckCircle />
+
               <span>{message}</span>
             </div>
           )}
 
           {/* VERIFICATION FORM */}
+
           <form className={styles.verificationForm} onSubmit={handleVerifyCode}>
             <div className={styles.verificationInputGroup}>
               <label htmlFor="finance-verification-code">
@@ -510,6 +548,7 @@ export default function FinanceLogin() {
             </div>
 
             {/* ATTEMPTS REMAINING */}
+
             {typeof attemptsRemaining === "number" && (
               <div className={styles.attemptsNotice}>
                 <FiShield />
@@ -522,6 +561,7 @@ export default function FinanceLogin() {
             )}
 
             {/* VERIFY BUTTON */}
+
             <button
               className={styles.loginBtn}
               disabled={loading || verificationCode.length !== 6}
@@ -542,6 +582,7 @@ export default function FinanceLogin() {
           </form>
 
           {/* RESEND */}
+
           <div className={styles.resendSection}>
             <span>Didn't receive the code?</span>
 
@@ -573,6 +614,7 @@ export default function FinanceLogin() {
           </div>
 
           {/* BACK */}
+
           <button
             type="button"
             className={styles.backBtn}
@@ -583,8 +625,10 @@ export default function FinanceLogin() {
           </button>
 
           {/* SECURITY */}
+
           <div className={styles.security}>
             <FiShield />
+
             <span>Secure Finance Administrator Verification</span>
           </div>
         </div>
@@ -607,6 +651,7 @@ export default function FinanceLogin() {
 
       <div className={styles.card}>
         {/* BRAND */}
+
         <div className={styles.brand}>
           <img
             src={logo}
@@ -624,6 +669,7 @@ export default function FinanceLogin() {
         </div>
 
         {/* ERROR */}
+
         {error && (
           <div className={styles.error} role="alert">
             {error}
@@ -631,8 +677,10 @@ export default function FinanceLogin() {
         )}
 
         {/* LOGIN FORM */}
+
         <form className={styles.form} onSubmit={handleSubmit}>
           {/* EMAIL */}
+
           <div className={styles.inputGroup}>
             <label htmlFor="finance-admin-email">
               Finance Admin Email Address
@@ -653,6 +701,7 @@ export default function FinanceLogin() {
           </div>
 
           {/* PASSWORD */}
+
           <div className={styles.inputGroup}>
             <label htmlFor="finance-admin-password">Password</label>
 
@@ -682,6 +731,7 @@ export default function FinanceLogin() {
           </div>
 
           {/* REMEMBER ME */}
+
           <div className={styles.options}>
             <label className={styles.rememberLabel}>
               <input
@@ -696,6 +746,7 @@ export default function FinanceLogin() {
           </div>
 
           {/* LOGIN BUTTON */}
+
           <button className={styles.loginBtn} disabled={loading} type="submit">
             {loading ? (
               <>
@@ -711,14 +762,17 @@ export default function FinanceLogin() {
           </button>
 
           {/* CREATE FINANCE ADMIN */}
+
           <Link to="/admin/create-admin" className={styles.createBtn}>
             <FiUserPlus />
             Create Finance Admin
           </Link>
 
           {/* SECURITY */}
+
           <div className={styles.security}>
             <FiShield />
+
             <span>Finance Administrator Access Only</span>
           </div>
         </form>
