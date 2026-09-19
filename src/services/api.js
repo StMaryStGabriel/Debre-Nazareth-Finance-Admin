@@ -28,7 +28,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("adminToken");
 
-      window.location.href = "/admin/login";
+      window.location.href = "/finance/admin/login";
     }
 
     return Promise.reject(error);
